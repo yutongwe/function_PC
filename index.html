@@ -9655,7 +9655,7 @@ init();
   const today = new Date('2026-08-05');
   let cSeq = 100;
   function mk(name, type, source, industry, region, status, intent, scale, stage, builtTime, x, y, lastVisit, deadline, owner, pipeDist) {
-    return { id: ++cSeq, name, type, source, industry, region, status, intent, scale, stage: stage || '意向跟进中', builtTime: builtTime || '-', x, y, lastVisit, deadline, owner: owner || '王开发', code: '91370300MA' + String(3000 + cSeq), pipeDist, underConstruction: builtTime === '本年内' || builtTime === '明年及以后' };
+    return { id: ++cSeq, name, type, source, industry, region, status, intent, scale, stage: stage || '意向跟进中', builtTime: builtTime || '-', x, y, lastVisit, deadline, owner: owner || '王开发', code: '91370300MA' + String(3000 + cSeq), pipeDist, underConstruction: builtTime === '本年内' || builtTime === '明年及以后', contact: '', phone: '', addrDetail: '' };
   }
   const customers = [
     mk('淄博金晶陶瓷有限公司', '工业', '天眼查', '陶瓷', '张店区', '意向跟进中', '高', '≥3000方/日', '意向跟进中', '已建成', 150, 120, '2026-08-01', '2026-09-30', '王开发', 0.3),
@@ -9839,17 +9839,17 @@ init();
   /* ---------- 客户新增 / 编辑 ---------- */
   window.cdOpenCust = function (id) {
     const c = id ? customers.find(x => x.id === id) : null;
-    const f = c ? Object.assign({}, c, { prov: '山东省', city: '淄博市', dist: c.region || '', town: '', addrDetail: '' }) : { name: '', type: '工业', code: '', source: '天眼查', industry: '', intent: '', scale: '', prov: '山东省', city: '淄博市', dist: '', town: '', addrDetail: '' };
+    const f = c ? Object.assign({}, c, { prov: '山东省', city: '淄博市', dist: c.region || '', town: '', addrDetail: c.addrDetail || '', contact: c.contact || '', phone: c.phone || '' }) : { name: '', type: '工业', code: '', source: '天眼查', industry: '', intent: '', scale: '', prov: '山东省', city: '淄博市', dist: '', town: '', addrDetail: '', contact: '', phone: '' };
     window.__cdCustEdit = c ? c.id : 0;
     showModal(c ? '编辑客户' : '新增客户',
       `<input type="hidden" id="cf-id" value="${c ? c.id : ''}">
       <div class="form-item"><label class="form-label">客户名称 <span class="required">*</span></label><input class="input" id="cf-name" value="${escHtml(f.name)}"></div>
       <div class="form-row">
-        <div class="form-item"><label class="form-label">客户类型</label><select class="select" id="cf-type">${selOpts(['工业', '商服'], f.type)}</select></div>
+        <div class="form-item"><label class="form-label">客户类型 <span class="required">*</span></label><select class="select" id="cf-type">${selOpts(['工业', '商服'], f.type)}</select></div>
         <div class="form-item"><label class="form-label">统一社会信用代码</label><input class="input" id="cf-code" value="${escHtml(f.code)}"></div>
       </div>
       <div class="form-row">
-        <div class="form-item"><label class="form-label">来源渠道</label><select class="select" id="cf-source">${selOpts(['天眼查', '政府名单', '环评安评', '扫街新增'], f.source)}</select></div>
+        <div class="form-item"><label class="form-label">来源渠道 <span class="required">*</span></label><select class="select" id="cf-source">${selOpts(['天眼查', '政府名单', '环评安评', '扫街新增'], f.source)}</select></div>
         <div class="form-item"><label class="form-label">主营产业</label><select class="select" id="cf-industry"><option value="">未填写</option>${selOpts(industries, f.industry || '')}</select></div>
       </div>
       <div class="form-row">
@@ -9857,17 +9857,27 @@ init();
         <div class="form-item"><label class="form-label">规模估算</label><select class="select" id="cf-scale">${selOpts(['≥3000方/日', '1000-3000方/日', '<1000方/日'], f.scale || '', '未知')}</select></div>
       </div>
       <div class="form-row">
-        <div class="form-item"><label class="form-label">区域</label><select class="select" id="cf-dist">${selOpts(['张店区', '淄川区', '博山区', '临淄区', '周村区', '桓台县', '高青县', '沂源县', '高新区', '经开区'], f.dist || '', '请选择')}</select></div>
-        <div class="form-item"><label class="form-label">地址</label><input class="input" id="cf-addrDetail" placeholder="详细地址" value="${escHtml(f.addrDetail)}"></div>
+        <div class="form-item"><label class="form-label">区域 <span class="required">*</span></label><select class="select" id="cf-dist">${selOpts(['张店区', '淄川区', '博山区', '临淄区', '周村区', '桓台县', '高青县', '沂源县', '高新区', '经开区'], f.dist || '', '请选择')}</select></div>
+        <div class="form-item"><label class="form-label">地址 <span class="required">*</span></label><input class="input" id="cf-addrDetail" placeholder="详细地址" value="${escHtml(f.addrDetail)}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-item"><label class="form-label">联系人 <span class="required">*</span></label><input class="input" id="cf-contact" placeholder="联系人姓名" value="${escHtml(f.contact)}"></div>
+        <div class="form-item"><label class="form-label">联系电话 <span class="required">*</span></label><input class="input" id="cf-phone" placeholder="联系电话" value="${escHtml(f.phone)}"></div>
       </div>`,
       `<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="cdSaveCust()">保存</button>`, '');
   };
   window.cdSaveCust = function () {
     const id = parseInt(document.getElementById('cf-id').value || '0', 10);
-    const f = { name: document.getElementById('cf-name').value, type: document.getElementById('cf-type').value, code: document.getElementById('cf-code').value, source: document.getElementById('cf-source').value, industry: document.getElementById('cf-industry').value, intent: document.getElementById('cf-intent').value || null, scale: document.getElementById('cf-scale').value || null, region: document.getElementById('cf-dist').value, addrDetail: document.getElementById('cf-addrDetail').value };
+    const f = { name: document.getElementById('cf-name').value.trim(), type: document.getElementById('cf-type').value, code: document.getElementById('cf-code').value, source: document.getElementById('cf-source').value, industry: document.getElementById('cf-industry').value, intent: document.getElementById('cf-intent').value || null, scale: document.getElementById('cf-scale').value || null, region: document.getElementById('cf-dist').value, addrDetail: document.getElementById('cf-addrDetail').value.trim(), contact: document.getElementById('cf-contact').value.trim(), phone: document.getElementById('cf-phone').value.trim() };
     if (!f.name) { toast('请填写客户名称', 'info'); return; }
+    if (!f.type) { toast('请选择客户类型', 'info'); return; }
+    if (!f.source) { toast('请选择来源渠道', 'info'); return; }
+    if (!f.region) { toast('请选择区域', 'info'); return; }
+    if (!f.addrDetail) { toast('请填写地址', 'info'); return; }
+    if (!f.contact) { toast('请填写联系人', 'info'); return; }
+    if (!f.phone) { toast('请填写联系电话', 'info'); return; }
     if (id) { const c = customers.find(x => x.id === id); const before = c.intent; Object.assign(c, f); if (before !== c.intent) audits.unshift({ id: ++aId, cid: c.id, t: '2026-08-05 ' + new Date().toTimeString().slice(0, 5), u: '王开发', f: '用气意向', o: before || '未判定', n: c.intent || '未判定' }); }
-    else { customers.unshift(mk(f.name, f.type, f.source, f.industry || null, f.region || '张店区', '待走访', f.intent || null, f.scale || null, '意向跟进中', '-', 300, 300, null, null, '王开发', 1.0)); }
+    else { const nc = mk(f.name, f.type, f.source, f.industry || null, f.region, '待走访', f.intent || null, f.scale || null, '意向跟进中', '-', 300, 300, null, null, '王开发', 1.0); nc.contact = f.contact; nc.phone = f.phone; nc.addrDetail = f.addrDetail; customers.unshift(nc); }
     closeModal(); renderPool(); renderStreet(); renderIntent(); renderPlan();
     toast('已保存', 'success');
   };
