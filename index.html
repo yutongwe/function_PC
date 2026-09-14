@@ -1755,7 +1755,7 @@ table { border-collapse: collapse; width: 100%; }
   --brand:#3D8BFF; --brand-dark:#2E72E0;
   --pipe-main:#E5484D; --pipe-branch:#F5A623;
   --panel:#ffffff; --line:#E3E9EC; --muted:#7A8A94;
-  height:680px; border:1px solid var(--gray-border); border-radius:12px; overflow:hidden;
+  height:calc(100vh - 104px); min-height:480px; border:1px solid var(--gray-border); border-radius:12px; overflow:hidden;
   background:#f2f5f7; box-shadow:var(--shadow-sm);
 }
 .cdmap .app { display:flex; flex-direction:column; height:100%; }
@@ -10522,6 +10522,44 @@ init();
   let currentCity = null;
   let hoverRegion = null;
 
+  /* ===== 市级视图连续缩放相机（百度/高德式滚轮缩放 + 平移） ===== */
+  const CITY_KM = 20;           // 市级示意地图代表 20km 见方的城市区域
+  let cam = { zoom: 1, cx: .5, cy: .5 };  // zoom 缩放因子, cx/cy 视口中心(世界坐标 0-1)
+  let dragging = false, dragMoved = false, dragStart = null;
+  function worldToScreen(wx, wy) { return viewLevel === 2 ? { x: (wx - cam.cx * W) * cam.zoom + W / 2, y: (wy - cam.cy * H) * cam.zoom + H / 2 } : { x: wx, y: wy }; }
+  function screenToWorld(mx, my) { return viewLevel === 2 ? { wx: (mx - W / 2) / cam.zoom + cam.cx * W, wy: (my - H / 2) / cam.zoom + cam.cy * H } : { wx: mx, wy: my }; }
+  function cityZoomAt(mx, my, factor) {
+    const oldZoom = cam.zoom;
+    const newZoom = Math.min(10, Math.max(.4, oldZoom * factor));
+    if (newZoom === oldZoom) return;
+    const wnx = (mx - W / 2) / (oldZoom * W) + cam.cx;
+    const wny = (my - H / 2) / (oldZoom * H) + cam.cy;
+    cam.zoom = newZoom;
+    cam.cx = wnx - (mx - W / 2) / (newZoom * W);
+    cam.cy = wny - (my - H / 2) / (newZoom * H);
+  }
+  function drawScaleBar() {
+    const pxPerKm = cam.zoom * W / CITY_KM;   // 每公里对应像素
+    const targetPx = 130;
+    const nice = [.05, .1, .2, .5, 1, 2, 5, 10];
+    let stepKm = nice[0];
+    for (const s of nice) { if (s * pxPerKm <= targetPx) stepKm = s; }
+    const stepPx = stepKm * pxPerKm;
+    if (stepPx < 20) return;
+    const x0 = 16, y0 = H - 26;
+    ctx.fillStyle = 'rgba(255,255,255,.88)';
+    ctx.beginPath(); ctx.roundRect(x0 - 8, y0 - 16, stepPx + 16, 34, 6); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.12)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.lineCap = 'butt';
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 + stepPx, y0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x0, y0 - 5); ctx.lineTo(x0, y0 + 5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x0 + stepPx, y0 - 5); ctx.lineTo(x0 + stepPx, y0 + 5); ctx.stroke();
+    const label = stepKm >= 1 ? stepKm + ' km' : Math.round(stepKm * 1000) + ' m';
+    ctx.fillStyle = '#333'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, x0 + stepPx / 2, y0 + 13);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  }
+
   function shenzhenSummary() {
     const s = { total: 0, signed: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 };
     customers.forEach(c => { s.total++; s[c.status] = (s[c.status] || 0) + 1; s.load += (c.load || 0); });
@@ -10702,8 +10740,16 @@ init();
 
   function draw() {
     ctx.clearRect(0, 0, W, H);
-    if (viewLevel < 2) { drawRegions(); }
-    else { drawBase(); drawPipes(); drawSelection(); drawCustomers(); drawMeasure(); }
+    if (viewLevel < 2) { drawRegions(); return; }
+    // 市级视图：屏幕背景 + 相机变换（连续缩放/平移）
+    ctx.fillStyle = '#edf0e8'; ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    ctx.translate(W / 2, H / 2);
+    ctx.scale(cam.zoom, cam.zoom);
+    ctx.translate(-cam.cx * W, -cam.cy * H);
+    drawBase(); drawPipes(); drawSelection(); drawCustomers(); drawMeasure();
+    ctx.restore();
+    drawScaleBar();
   }
 
   /* ================= 测距工具 ================= */
@@ -10868,23 +10914,27 @@ init();
   }
   function goCity(c) {
     viewLevel = 2; currentCity = c; hoverRegion = null; selected = null;
+    cam = { zoom: 1, cx: .5, cy: .5 };  // 进入市级视图重置相机
     syncUI(); renderCrumb(); renderList(); renderStats(); draw();
-    showZoomHint('已进入 ' + c.name + ' 客户池地图');
+    showZoomHint('已进入 ' + c.name + ' 客户池地图，滚轮可连续缩放');
   }
 
   /* ================= 交互 ================= */
   const popup = $id('popup');
   function hitTest(mx, my) {
-    for (let i = pinRects.length - 1; i >= 0; i--) { const r = pinRects[i]; if (mx >= r.x - 4 && mx <= r.x + r.w + 4 && my >= r.y - 4 && my <= r.y + r.h + 8) return i; }
-    for (let i = 0; i < pinRects.length; i++) { if (Math.hypot(pinRects[i].cx - mx, pinRects[i].cy - 6 - my) < 11) return i; }
+    const p = screenToWorld(mx, my);
+    for (let i = pinRects.length - 1; i >= 0; i--) { const r = pinRects[i]; if (p.wx >= r.x - 4 && p.wx <= r.x + r.w + 4 && p.wy >= r.y - 4 && p.wy <= r.y + r.h + 8) return i; }
+    for (let i = 0; i < pinRects.length; i++) { if (Math.hypot(pinRects[i].cx - p.wx, pinRects[i].cy - 6 - p.wy) < 11) return i; }
     return -1;
   }
   const visibleCustomers = () => customers.filter(c => activeFilters.has(c.status));
   cv.addEventListener('click', e => {
     const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
     if (viewLevel < 2) { const reg = hitRegion(mx, my); if (reg) viewLevel === 0 ? goProvince(reg) : goCity(reg); return; }
+    if (dragMoved) { dragMoved = false; return; }
     if (measureMode) {
-      const s = snapTarget(mx / W, my / H);
+      const p = screenToWorld(mx, my);
+      const s = snapTarget(p.wx / W, p.wy / H);
       if (!measure.done) measure.points.push({ x: s.x, y: s.y, s: s });
       updateMeasureUI(); draw(); return;
     }
@@ -10903,6 +10953,7 @@ init();
   });
   cv.addEventListener('mousemove', e => {
     const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+    if (dragging) return;
     if (viewLevel < 2) {
       const reg = hitRegion(mx, my);
       const prev = hoverRegion;
@@ -10923,28 +10974,50 @@ init();
     }
     if (measureMode) {
       cv.style.cursor = 'crosshair';
-      if (measure.points.length && !measure.done) { measure.cursor = { x: mx / W, y: my / H }; draw(); }
+      if (measure.points.length && !measure.done) { const wp = screenToWorld(mx, my); measure.cursor = { x: wp.wx / W, y: wp.wy / H }; draw(); }
       popup.style.display = 'none'; return;
     }
     const i = hitTest(mx, my);
     cv.style.cursor = i >= 0 ? 'pointer' : 'default';
     if (i >= 0) {
       const c = visibleCustomers()[i];
+      const sp = worldToScreen(c.x * W, c.y * H);
       popup.style.display = 'block';
-      popup.style.left = (c.x * W) + 'px'; popup.style.top = (c.y * H - 4) + 'px';
+      popup.style.left = sp.x + 'px'; popup.style.top = (sp.y - 4) + 'px';
       popup.innerHTML = `<div class="p-name">${c.name}</div><div class="p-row">${STATUS[c.status].name} · ${c.type}${c.load ? ' · ' + c.load.toLocaleString() + ' m³/日' : ''}</div><div class="p-row">最近走访：${c.last}　<span style="color:var(--brand)">点击查看接驳分析 →</span></div>`;
     } else popup.style.display = 'none';
   });
   cv.addEventListener('mouseleave', () => popup.style.display = 'none');
+  // 拖拽平移（市级视图）
+  cv.addEventListener('mousedown', e => {
+    if (viewLevel !== 2 || measureMode) return;
+    dragging = true; dragMoved = false;
+    dragStart = { x: e.clientX, y: e.clientY, cx: cam.cx, cy: cam.cy };
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - dragStart.x, dy = e.clientY - dragStart.y;
+    if (Math.abs(dx) + Math.abs(dy) > 3) dragMoved = true;
+    cam.cx = dragStart.cx - dx / (cam.zoom * W);
+    cam.cy = dragStart.cy - dy / (cam.zoom * H);
+    draw();
+  });
+  window.addEventListener('mouseup', () => { dragging = false; });
   let wheelLock = false;
   cv.addEventListener('wheel', e => {
     e.preventDefault();
-    if (wheelLock) return;
     const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+    if (viewLevel === 2) {
+      // 市级视图：连续缩放（向下滚放大，向上滚缩小）
+      cityZoomAt(mx, my, e.deltaY > 0 ? 1.2 : 1 / 1.2);
+      draw();
+      return;
+    }
+    if (wheelLock) return;
     const target = hitRegion(mx, my);
     wheelLock = true; setTimeout(() => wheelLock = false, 320);
     if (e.deltaY > 0) { if (viewLevel === 0) goProvince(target || regions[0]); else if (viewLevel === 1) goCity(target || currentProvince.cities[0]); }
-    else { if (viewLevel === 2) goProvince(currentProvince); else if (viewLevel === 1) goCountry(); }
+    else { if (viewLevel === 1) goCountry(); }
   }, { passive: false });
   ['lyrMain', 'lyrBranch', 'lyrRadius'].forEach(id => $id(id).addEventListener('change', draw));
 
