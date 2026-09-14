@@ -2477,10 +2477,10 @@ table { border-collapse: collapse; width: 100%; }
             <label>项目公司</label>
             <select class="select" id="cmFilterCompany" onchange="renderCustomerManagerList()">
               <option value="">全部</option>
-              <option value="邹城昆仑燃气">邹城昆仑燃气</option>
-              <option value="菏泽燃气">菏泽燃气</option>
-              <option value="聊城金捷">聊城金捷</option>
-              <option value="章丘华气">章丘华气</option>
+              <option value="邹城公司">邹城公司</option>
+              <option value="菏泽公司">菏泽公司</option>
+              <option value="聊城公司">聊城公司</option>
+              <option value="章丘公司">章丘公司</option>
             </select>
           </div>
           <div class="filter-group">
@@ -3490,10 +3490,11 @@ table { border-collapse: collapse; width: 100%; }
       <section class="page" id="page-priceAnalysis">
         <div class="pa-topbar">
           <h1>整体量价分析</h1>
-          <span class="sub" id="pa-pageSub">淄博绿博 · 工业客户 · 数据日期 2026-08-09</span>
+          <span class="sub" id="pa-pageSub">淄博公司 · 工业客户 · 数据日期 2026-08-09</span>
           <div class="pa-role-switch" id="pa-viewSwitch">
             <button class="active" data-v="company" onclick="paSetViewMode('company',this)">项目公司视角</button>
             <button data-v="province" onclick="paSetViewMode('province',this)">省公司视角</button>
+            <button data-v="group" onclick="paSetViewMode('group',this)">总公司视角</button>
           </div>
         </div>
 
@@ -3508,6 +3509,7 @@ table { border-collapse: collapse; width: 100%; }
         </div>
 
         <div class="pa-filters">
+          <select id="pa-fProvince" onchange="paOnProvinceChange()" style="display:none"></select>
           <select id="pa-fCompany" onchange="paOnCompanyChange()"></select>
           <select id="pa-fIndustry" onchange="paApplyFilter()"><option value="">全部行业</option></select>
           <select id="pa-fLevel" onchange="paApplyFilter()"><option value="">全部等级</option><option>一级</option><option>二级</option><option>三级</option></select>
@@ -4041,25 +4043,25 @@ function seed() {
 
   const customerNames = [
 
-    { name: '昆仑化工集团有限公司', level: '一级', industry: '化工', gas: 1200, amount: 1800, mgr: '王明', year: 2015, projectCompany: '邹城昆仑燃气' },
+    { name: '昆仑化工集团有限公司', level: '一级', industry: '化工', gas: 1200, amount: 1800, mgr: '王明', year: 2015, projectCompany: '邹城公司' },
 
-    { name: '黄河玻璃制造有限公司', level: '一级', industry: '玻璃及玻纤', gas: 850, amount: 1200, mgr: '王明', year: 2014, projectCompany: '菏泽燃气' },
+    { name: '黄河玻璃制造有限公司', level: '一级', industry: '玻璃及玻纤', gas: 850, amount: 1200, mgr: '王明', year: 2014, projectCompany: '菏泽公司' },
 
-    { name: '北方陶瓷股份', level: '一级', industry: '陶瓷及耐火材料', gas: 720, amount: 1100, mgr: '李华', year: 2016, projectCompany: '聊城金捷' },
+    { name: '北方陶瓷股份', level: '一级', industry: '陶瓷及耐火材料', gas: 720, amount: 1100, mgr: '李华', year: 2016, projectCompany: '聊城公司' },
 
-    { name: '中原食品加工厂', level: '二级', industry: '食品及饮料制造', gas: 320, amount: 580, mgr: '陈刚', year: 2018, projectCompany: '章丘华气' },
+    { name: '中原食品加工厂', level: '二级', industry: '食品及饮料制造', gas: 320, amount: 580, mgr: '陈刚', year: 2018, projectCompany: '章丘公司' },
 
-    { name: '东南造纸有限公司', level: '二级', industry: '造纸', gas: 280, amount: 450, mgr: '陈刚', year: 2017, projectCompany: '邹城昆仑燃气' },
+    { name: '东南造纸有限公司', level: '二级', industry: '造纸', gas: 280, amount: 450, mgr: '陈刚', year: 2017, projectCompany: '邹城公司' },
 
-    { name: '西南建材集团', level: '二级', industry: '建材', gas: 410, amount: 620, mgr: '李华', year: 2019, projectCompany: '菏泽燃气' },
+    { name: '西南建材集团', level: '二级', industry: '建材', gas: 410, amount: 620, mgr: '李华', year: 2019, projectCompany: '菏泽公司' },
 
-    { name: '华东医药制造股份', level: '二级', industry: '医药制造', gas: 250, amount: 380, mgr: '王明', year: 2020, projectCompany: '聊城金捷' },
+    { name: '华东医药制造股份', level: '二级', industry: '医药制造', gas: 250, amount: 380, mgr: '王明', year: 2020, projectCompany: '聊城公司' },
 
-    { name: '城西食品有限公司', level: '三级', industry: '食品及饮料制造', gas: 85, amount: 120, mgr: '张三', year: 2021, projectCompany: '章丘华气' },
+    { name: '城西食品有限公司', level: '三级', industry: '食品及饮料制造', gas: 85, amount: 120, mgr: '张三', year: 2021, projectCompany: '章丘公司' },
 
-    { name: '城南陶瓷配件厂', level: '三级', industry: '陶瓷及耐火材料', gas: 60, amount: 80, mgr: '张三', year: 2022, projectCompany: '邹城昆仑燃气' },
+    { name: '城南陶瓷配件厂', level: '三级', industry: '陶瓷及耐火材料', gas: 60, amount: 80, mgr: '张三', year: 2022, projectCompany: '邹城公司' },
 
-    { name: '城北玻璃工艺厂', level: '三级', industry: '玻璃及玻纤', gas: 95, amount: 150, mgr: '李华', year: 2021, projectCompany: '菏泽燃气' }
+    { name: '城北玻璃工艺厂', level: '三级', industry: '玻璃及玻纤', gas: 95, amount: 150, mgr: '李华', year: 2021, projectCompany: '菏泽公司' }
 
   ];
 
@@ -4891,7 +4893,7 @@ function openCustomerManagerModal(customerId) {
   const isEdit = !!customerId;
   const customer = isEdit ? State.customers.find(c => c.id === customerId) : null;
 
-  const companies = ['邹城昆仑燃气', '菏泽燃气', '聊城金捷', '章丘华气'];
+  const companies = ['邹城公司', '菏泽公司', '聊城公司', '章丘公司'];
   const levels = ['一级', '二级', '三级'];
 
   const initialCompany = customer ? customer.projectCompany : (companies[0] || '');
@@ -5949,7 +5951,7 @@ function exportVisitList() {
 
 // 导出项目公司分析(山东省下属 4 家项目公司, 含拜访+诉求工单详情)
 function exportProjectCompanyAnalysis() {
-  const PROJECT_COMPANIES = ['邹城昆仑燃气', '菏泽燃气', '聊城金捷', '章丘华气'];
+  const PROJECT_COMPANIES = ['邹城公司', '菏泽公司', '聊城公司', '章丘公司'];
 
   // 计算每个项目公司的统计数据
   const pcStats = PROJECT_COMPANIES.map(pc => {
@@ -6913,10 +6915,10 @@ const VISIT_PERSISTENT_KEYS_MANAGER = ['bizScope', 'techProcess', 'bizCost', 'or
 
 // 项目公司人员字典(供跟进事项"负责人"下拉选择, 按本项目公司过滤)
 const PROJECT_MEMBERS = {
-  '邹城昆仑燃气': ['王总(公司负责人)', '张部长(部门经理)', '张三(客户经理)', '赵调度(调度中心)', '李工(运维部)', '刘经理(客服部)'],
-  '菏泽燃气':     ['王总(公司负责人)', '张部长(部门经理)', '王明(客户经理)', '赵调度(调度中心)', '李工(运维部)', '刘经理(客服部)'],
-  '聊城金捷':     ['王总(公司负责人)', '张部长(部门经理)', '李华(客户经理)', '赵调度(调度中心)', '李工(运维部)', '刘经理(客服部)'],
-  '章丘华气':     ['王总(公司负责人)', '张部长(部门经理)', '陈刚(客户经理)', '赵调度(调度中心)', '李工(运维部)', '刘经理(客服部)']
+  '邹城公司': ['王总(公司负责人)', '张部长(部门经理)', '张三(客户经理)', '赵调度(调度中心)', '李工(运维部)', '刘经理(客服部)'],
+  '菏泽公司':     ['王总(公司负责人)', '张部长(部门经理)', '王明(客户经理)', '赵调度(调度中心)', '李工(运维部)', '刘经理(客服部)'],
+  '聊城公司':     ['王总(公司负责人)', '张部长(部门经理)', '李华(客户经理)', '赵调度(调度中心)', '李工(运维部)', '刘经理(客服部)'],
+  '章丘公司':     ['王总(公司负责人)', '张部长(部门经理)', '陈刚(客户经理)', '赵调度(调度中心)', '李工(运维部)', '刘经理(客服部)']
 };
 
 // 兜底通用人员列表(未匹配到项目公司时)
@@ -9187,7 +9189,7 @@ function renderAnalytics() {
 
     // 4 家项目公司(山东省) - 客户来源映射
 
-    const PROJECT_COMPANIES = ['邹城昆仑燃气', '菏泽燃气', '聊城金捷', '章丘华气'];
+    const PROJECT_COMPANIES = ['邹城公司', '菏泽公司', '聊城公司', '章丘公司'];
 
     // 按项目公司聚合数据
 
@@ -11122,26 +11124,34 @@ init();
 (function(){
   'use strict';
   var INDUSTRIES = ["陶瓷","玻璃","有色金属","钢铁","机械","电子设备","石化","化工","非金属","服装纺织","烟草","食品制造","饮料制造","造纸","医药","废弃材料回收","燃气发电","塑料橡胶制品","建材","其他"];
-  var COMPANIES = ["淄博绿博","济宁中盛","德州华奥","临沂丰泰","潍坊昌盛"];
+  var PROVINCES = ["山东省公司","广东省公司","江苏省公司","浙江省公司"];
+  var COMPANY_PROVINCE = {
+    "淄博公司":"山东省公司","济宁公司":"山东省公司","德州公司":"山东省公司","临沂公司":"山东省公司","潍坊公司":"山东省公司",
+    "广州公司":"广东省公司","深圳公司":"广东省公司","东莞公司":"广东省公司",
+    "苏州公司":"江苏省公司","无锡公司":"江苏省公司","南京公司":"江苏省公司",
+    "杭州公司":"浙江省公司","宁波公司":"浙江省公司","温州公司":"浙江省公司"
+  };
+  var COMPANIES = ["淄博公司","济宁公司","德州公司","临沂公司","潍坊公司","广州公司","深圳公司","东莞公司","苏州公司","无锡公司","南京公司","杭州公司","宁波公司","温州公司"];
   var RISKS = ["有","无"];
   var ALTS = {有:["LNG点供","电","煤"],无:["无"]};
   var VOL_REASONS = ["订单量增加","订单量减少","设备停产检修","环保限产停工","新生产线投产","季节性波动","客户减产","竞品低价抢单"];
   var NAME_A = ["宏宇","金鼎","鲁泰","新华","恒力","泰和","山水","蓝海","瑞丰","中联","华光","德胜","润和","锦程","昌隆"];
   var NAME_B = {陶瓷:"陶瓷",玻璃:"玻璃",有色金属:"新材",钢铁:"特钢",机械:"机械",电子设备:"电子",石化:"石化",化工:"化工",非金属:"非金属材料",服装纺织:"纺织",烟草:"烟草制品",食品制造:"食品",饮料制造:"饮料",造纸:"纸业",医药:"医药",废弃材料回收:"再生资源",燃气发电:"燃气电厂",塑料橡胶制品:"橡塑",建材:"建材",其他:"实业"};
-  var COMPANY_WEIGHTS = {淄博绿博:30, 济宁中盛:22, 德州华奥:18, 临沂丰泰:20, 潍坊昌盛:16};
+  var COMPANY_WEIGHTS = {淄博公司:11, 济宁公司:9, 德州公司:7, 临沂公司:8, 潍坊公司:6, 广州公司:10, 深圳公司:9, 东莞公司:7, 苏州公司:8, 无锡公司:6, 南京公司:6, 杭州公司:7, 宁波公司:6, 温州公司:5};
   var TOTAL_CUSTOMERS = 120;
   var COMPANY_BASE_DATA = {
-    淄博绿博: { resCnt:32000, resNew:80, resLost:45, resGasWan:88, resGasYoy:3.2, resGasMom:1.1, bizCnt:320, bizNew:12, bizLost:7, bizGasWan:45, bizGasYoy:5.0, bizGasMom:2.0, bizProfit:24, bizProfitYoy:7.5, bizProfitMom:3.2 },
-    济宁中盛: { resCnt:28000, resNew:70, resLost:40, resGasWan:75, resGasYoy:3.8, resGasMom:1.3, bizCnt:280, bizNew:10, bizLost:6, bizGasWan:40, bizGasYoy:5.5, bizGasMom:2.3, bizProfit:21, bizProfitYoy:8.2, bizProfitMom:3.8 },
-    德州华奥: { resCnt:22000, resNew:55, resLost:32, resGasWan:60, resGasYoy:3.0, resGasMom:0.9, bizCnt:220, bizNew:8, bizLost:5, bizGasWan:32, bizGasYoy:4.8, bizGasMom:1.8, bizProfit:17, bizProfitYoy:7.0, bizProfitMom:2.9 },
-    临沂丰泰: { resCnt:26000, resNew:65, resLost:38, resGasWan:70, resGasYoy:4.0, resGasMom:1.5, bizCnt:260, bizNew:9, bizLost:6, bizGasWan:38, bizGasYoy:5.8, bizGasMom:2.5, bizProfit:19, bizProfitYoy:8.5, bizProfitMom:4.0 },
-    潍坊昌盛: { resCnt:20000, resNew:50, resLost:25, resGasWan:55, resGasYoy:2.8, resGasMom:0.8, bizCnt:180, bizNew:6, bizLost:4, bizGasWan:25, bizGasYoy:4.5, bizGasMom:1.6, bizProfit:14, bizProfitYoy:6.8, bizProfitMom:2.5 }
+    淄博公司: { resCnt:32000, resNew:80, resLost:45, resGasWan:88, resGasYoy:3.2, resGasMom:1.1, bizCnt:320, bizNew:12, bizLost:7, bizGasWan:45, bizGasYoy:5.0, bizGasMom:2.0, bizProfit:24, bizProfitYoy:7.5, bizProfitMom:3.2 },
+    济宁公司: { resCnt:28000, resNew:70, resLost:40, resGasWan:75, resGasYoy:3.8, resGasMom:1.3, bizCnt:280, bizNew:10, bizLost:6, bizGasWan:40, bizGasYoy:5.5, bizGasMom:2.3, bizProfit:21, bizProfitYoy:8.2, bizProfitMom:3.8 },
+    德州公司: { resCnt:22000, resNew:55, resLost:32, resGasWan:60, resGasYoy:3.0, resGasMom:0.9, bizCnt:220, bizNew:8, bizLost:5, bizGasWan:32, bizGasYoy:4.8, bizGasMom:1.8, bizProfit:17, bizProfitYoy:7.0, bizProfitMom:2.9 },
+    临沂公司: { resCnt:26000, resNew:65, resLost:38, resGasWan:70, resGasYoy:4.0, resGasMom:1.5, bizCnt:260, bizNew:9, bizLost:6, bizGasWan:38, bizGasYoy:5.8, bizGasMom:2.5, bizProfit:19, bizProfitYoy:8.5, bizProfitMom:4.0 },
+    潍坊公司: { resCnt:20000, resNew:50, resLost:25, resGasWan:55, resGasYoy:2.8, resGasMom:0.8, bizCnt:180, bizNew:6, bizLost:4, bizGasWan:25, bizGasYoy:4.5, bizGasMom:1.6, bizProfit:14, bizProfitYoy:6.8, bizProfitMom:2.5 }
   };
-  var CITY_MAP = {淄博绿博:"淄博",济宁中盛:"济宁",德州华奥:"德州",临沂丰泰:"临沂",潍坊昌盛:"潍坊"};
-  var DISTRICT_MAP = {淄博绿博:"张店区经济开发区",济宁中盛:"任城区工业园",德州华奥:"德城区经开区",临沂丰泰:"兰山区工业园",潍坊昌盛:"奎文区开发区"};
+  var CITY_MAP = {淄博公司:"淄博",济宁公司:"济宁",德州公司:"德州",临沂公司:"临沂",潍坊公司:"潍坊",广州公司:"广州",深圳公司:"深圳",东莞公司:"东莞",苏州公司:"苏州",无锡公司:"无锡",南京公司:"南京",杭州公司:"杭州",宁波公司:"宁波",温州公司:"温州"};
+  var DISTRICT_MAP = {淄博公司:"张店区经济开发区",济宁公司:"任城区工业园",德州公司:"德城区经开区",临沂公司:"兰山区工业园",潍坊公司:"奎文区开发区",广州公司:"黄埔区工业园",深圳公司:"宝安区科技园",东莞公司:"松山湖高新区",苏州公司:"苏州工业园区",无锡公司:"新吴区工业园",南京公司:"江宁经开区",杭州公司:"萧山经开区",宁波公司:"北仑港工业园",温州公司:"瓯海经开区"};
 
   function weightedRandomCompany(rnd){
-    var totalWeight = Object.keys(COMPANY_WEIGHTS).reduce(function(a,b){return a+b;},0);
+    var totalWeight = 0;
+    for(var k in COMPANY_WEIGHTS){ totalWeight += COMPANY_WEIGHTS[k]; }
     var r = rnd() * totalWeight;
     for(var comp in COMPANY_WEIGHTS){
       r -= COMPANY_WEIGHTS[comp];
@@ -11151,6 +11161,23 @@ init();
   }
   function seededRand(seed){ var s=seed; return function(){ s=(s*9301+49297)%233280; return s/233280; }; }
   var rnd = seededRand(20260809);
+
+  // 为新增项目公司程序化生成基础数据（居民/商服，参考山东项目量级）
+  (function(){
+    var extra = ["广州公司","深圳公司","东莞公司","苏州公司","无锡公司","南京公司","杭州公司","宁波公司","温州公司"];
+    var r = seededRand(20260810);
+    extra.forEach(function(name){
+      var resCnt = 18000 + Math.floor(r()*8000);
+      var bizCnt = 150 + Math.floor(r()*150);
+      COMPANY_BASE_DATA[name] = {
+        resCnt:resCnt, resNew:Math.round(resCnt*0.0025), resLost:Math.round(resCnt*0.0014),
+        resGasWan:Math.round(resCnt*0.0026), resGasYoy:+(2.8+r()*1.5).toFixed(1), resGasMom:+(0.8+r()*1.0).toFixed(1),
+        bizCnt:bizCnt, bizNew:Math.round(8+r()*8), bizLost:Math.round(4+r()*5),
+        bizGasWan:Math.round(20+r()*20), bizGasYoy:+(4.5+r()*2).toFixed(1), bizGasMom:+(1.5+r()*1.5).toFixed(1),
+        bizProfit:Math.round(12+r()*10), bizProfitYoy:+(6.5+r()*2.5).toFixed(1), bizProfitMom:+(2.5+r()*2).toFixed(1)
+      };
+    });
+  })();
 
   var customers = [];
   var globalId = 1;
@@ -11193,6 +11220,7 @@ init();
       name: NAME_A[Math.floor(rnd()*NAME_A.length)] + NAME_B[ind] + "有限公司",
       industry: ind, type:type, level:lvl,
       company: company,
+      province: COMPANY_PROVINCE[company],
       mdg: '1000' + String(1000000 + (id * 7919) % 9000000),
       area: DISTRICT_MAP[company],
       city: CITY_MAP[company],
@@ -11218,7 +11246,32 @@ init();
     customers.forEach(function(c){ c.revenueContrib = +(c.profitYear/totProfitYear*100).toFixed(2); });
   })();
 
-  window.PA_DATA = { customers: customers, INDUSTRIES: INDUSTRIES, COMPANIES: COMPANIES, COMPANY_BASE_DATA: COMPANY_BASE_DATA };
+  // 预计算省公司 / 总公司（全国）的居民商服基础数据汇总
+  function aggregateBase(companies){
+    var keys = ["resCnt","resNew","resLost","resGasWan","bizCnt","bizNew","bizLost","bizGasWan","bizProfit"];
+    var s = {};
+    keys.forEach(function(k){ s[k]=0; });
+    companies.forEach(function(c){ var b=COMPANY_BASE_DATA[c]; if(!b) return; keys.forEach(function(k){ s[k]+=(b[k]||0); }); });
+    function wavg(k, gasKey){
+      var totGas=0, acc=0;
+      companies.forEach(function(c){ var b=COMPANY_BASE_DATA[c]; if(!b) return; var g=b[gasKey]||0; totGas+=g; acc+=g*(b[k]||0); });
+      return totGas>0 ? +(acc/totGas).toFixed(1) : 0;
+    }
+    s.resGasYoy = wavg("resGasYoy","resGasWan");
+    s.resGasMom = wavg("resGasMom","resGasWan");
+    s.bizGasYoy = wavg("bizGasYoy","bizGasWan");
+    s.bizGasMom = wavg("bizGasMom","bizGasWan");
+    s.bizProfitYoy = wavg("bizProfitYoy","bizProfit");
+    s.bizProfitMom = wavg("bizProfitMom","bizProfit");
+    return s;
+  }
+  var PROVINCE_BASE_DATA = {};
+  PROVINCES.forEach(function(p){
+    PROVINCE_BASE_DATA[p] = aggregateBase(COMPANIES.filter(function(c){ return COMPANY_PROVINCE[c]===p; }));
+  });
+  var GROUP_BASE_DATA = aggregateBase(COMPANIES);
+
+  window.PA_DATA = { customers: customers, INDUSTRIES: INDUSTRIES, COMPANIES: COMPANIES, COMPANY_BASE_DATA: COMPANY_BASE_DATA, PROVINCES: PROVINCES, COMPANY_PROVINCE: COMPANY_PROVINCE, PROVINCE_BASE_DATA: PROVINCE_BASE_DATA, GROUP_BASE_DATA: GROUP_BASE_DATA };
 })();
 
 /* ==================== 整体量价分析 ==================== */
@@ -11229,8 +11282,14 @@ init();
   var INDUSTRIES = DATA.INDUSTRIES;
   var COMPANIES = DATA.COMPANIES;
   var COMPANY_BASE_DATA = DATA.COMPANY_BASE_DATA;
+  var PROVINCES = DATA.PROVINCES;
+  var COMPANY_PROVINCE = DATA.COMPANY_PROVINCE;
+  var PROVINCE_BASE_DATA = DATA.PROVINCE_BASE_DATA;
+  var GROUP_BASE_DATA = DATA.GROUP_BASE_DATA;
 
   var viewMode="company", gasGrain="day", profitGrain="year";
+  var CURRENT_COMPANY = COMPANIES[0];   // 当前登录用户所属项目公司（项目公司视角固定看本公司）
+  var CURRENT_PROVINCE = PROVINCES[0];   // 当前登录用户所属省公司（省公司视角固定看本省）
   var sortKey="profit", sortDir=-1, filtered=customers.slice(), activePreset=null;
 
   function gasVal(c){ if(gasGrain==="day") return [c.daily,"方/日"]; if(gasGrain==="month") return [c.monthly,"方/月"]; return [c.ytdGas,"方(年累计)"]; }
@@ -11246,7 +11305,8 @@ init();
 
   function paGetCols(){
     var cols = [{k:"name", t:"客户名称", l:1}];
-    if(viewMode==="province") cols.push({k:"company", t:"所属项目公司"});
+    if(viewMode==="group") cols.push({k:"province", t:"所属省公司"});
+    if(viewMode==="group" || viewMode==="province") cols.push({k:"company", t:"所属项目公司"});
     cols.push(
       {k:"industry", t:"主营产业"},{k:"level", t:"等级"},
       {k:"gas", t:gasColTitle()},{k:"gasMom", t:gasMomColTitle()},
@@ -11289,7 +11349,8 @@ init();
       var gv=gasVal(c), mv=gasMomVal(c);
       return '<tr onclick="openCustomerProfile('+c.id+')">'
         +'<td class="l"><div class="pa-cname">'+c.name+'</div><div class="pa-csub">'+c.contact+' '+c.phone+'</div></td>'
-        +(viewMode==="province" ? '<td>'+c.company+'</td>' : "")
+        +(viewMode==="group" ? '<td>'+c.province+'</td>' : "")
+        +(viewMode==="group" || viewMode==="province" ? '<td>'+c.company+'</td>' : "")
         +'<td>'+c.industry+'</td>'
         +'<td><span class="pa-lvl '+c.level+'">'+c.level+'</span></td>'
         +'<td class="pa-col-gas">'+(gv?paFmt(gv[0]):"—")+(gv&&gv[1]==="方/月"?'<span class="pa-csub">/月</span>':"")+'</td>'
@@ -11312,15 +11373,25 @@ init();
     paRenderInsight();
   }
 
-  function paRenderKpis(companyFilter){
-    function getBaseData(filter){
-      if(!filter){
-        return { resCnt:128000, resNew:320, resLost:180, resGasWan:350, resGasYoy:3.5, resGasMom:1.2, bizCnt:1260, bizNew:45, bizLost:28, bizGasWan:180, bizGasYoy:5.2, bizGasMom:2.1, bizProfit:95, bizProfitYoy:8.0, bizProfitMom:3.5 };
-      }
-      return COMPANY_BASE_DATA[filter] || COMPANY_BASE_DATA[COMPANIES[0]];
+  function paRenderKpis(){
+    var prov, comp;
+    if(viewMode==="company"){ comp = CURRENT_COMPANY; prov = ""; }
+    else if(viewMode==="province"){ prov = CURRENT_PROVINCE; comp = document.getElementById("pa-fCompany").value; }
+    else { prov = document.getElementById("pa-fProvince").value; comp = document.getElementById("pa-fCompany").value; }
+    var all, base, viewTitle;
+    if(comp){
+      all = customers.filter(function(c){return c.company===comp;});
+      base = COMPANY_BASE_DATA[comp] || COMPANY_BASE_DATA[COMPANIES[0]];
+      viewTitle = comp;
+    } else if(prov){
+      all = customers.filter(function(c){return c.province===prov;});
+      base = PROVINCE_BASE_DATA[prov] || GROUP_BASE_DATA;
+      viewTitle = prov;
+    } else {
+      all = customers;
+      base = GROUP_BASE_DATA;
+      viewTitle = "全国";
     }
-    var all = companyFilter ? customers.filter(function(c){return c.company===companyFilter;}) : customers;
-    var base = getBaseData(companyFilter);
     function avg(arr,k){ return arr.reduce(function(s,c){return s+(+c[k]||0);},0)/arr.length; }
     function pct(v){ v=+v; return (v>0?"+":"")+v.toFixed(1)+"%"; }
     var indCnt = all.length;
@@ -11331,8 +11402,8 @@ init();
     var indGasMom = all.length ? avg(all,'mom') : 0;
     var indProfitYoy = all.length ? avg(all,'profitYoy') : 0;
     var indProfitMom = all.length ? avg(all,'profitMom') : 0;
-    var indNew = companyFilter ? Math.round(base.resCnt * 5 / 128000) : 5;
-    var indLost = companyFilter ? Math.round(base.resCnt * 3 / 128000) : 3;
+    var indNew = Math.round(base.resCnt * 5 / 128000);
+    var indLost = Math.round(base.resCnt * 3 / 128000);
     var totalCnt = base.resCnt + base.bizCnt + indCnt;
     var totalNew = base.resNew + base.bizNew + indNew;
     var totalLost = base.resLost + base.bizLost + indLost;
@@ -11351,7 +11422,6 @@ init();
     var expCnt = all.filter(function(c){return c.expansion==="有";}).length;
     var expProfit = all.filter(function(c){return c.expansion==="有";}).reduce(function(s,c){return s+c.profitYear;},0);
     var expPct = indProfitYear>0 ? Math.round(expProfit/indProfitYear*100) : 0;
-    var viewTitle = companyFilter ? companyFilter : "全省";
     function kpi(label, value, lines){
       var ds = lines.map(function(l){return '<div class="delta '+(l.cls||'')+'">'+l.t+'</div>';}).join("");
       return '<div class="pa-kpi"><div class="label">'+label+'</div><div class="value">'+value+'</div>'+ds+'</div>';
@@ -11384,29 +11454,31 @@ init();
   }
 
   function paGetFiltered(){
-    var comp=document.getElementById("pa-fCompany").value;
+    var prov = viewMode==="group" ? document.getElementById("pa-fProvince").value : (viewMode==="province" ? CURRENT_PROVINCE : "");
+    var comp = viewMode==="company" ? CURRENT_COMPANY : document.getElementById("pa-fCompany").value;
     var ind=document.getElementById("pa-fIndustry").value;
     var lvl=document.getElementById("pa-fLevel").value;
     var rk=document.getElementById("pa-fRisk").value;
     var exp=document.getElementById("pa-fExpansion").value;
     var vol=parseFloat(document.getElementById("pa-fVol").value);
     return customers.filter(function(c){
-      return (!comp||c.company===comp)&&(!ind||c.industry===ind)&&(!lvl||c.level===lvl)&&
+      return (!prov||c.province===prov)&&(!comp||c.company===comp)&&(!ind||c.industry===ind)&&(!lvl||c.level===lvl)&&
         (!rk || (rk==="新增" ? c.riskNew : c.risk===rk))&&(!exp||c.expansion===exp)&&
         (isNaN(vol)||Math.abs(gasMomVal(c))>=vol)&&
         (activePreset!=="drop3m" || c.drop3)&&(activePreset!=="profitDown" || c.profitDrop3);
     });
   }
-  window.paApplyFilter = function(){ filtered = paGetFiltered(); paRender(); paRenderKpis(document.getElementById("pa-fCompany").value); };
+  window.paApplyFilter = function(){ filtered = paGetFiltered(); paRender(); paRenderKpis(); };
   window.paResetFilter = function(){
-    document.getElementById("pa-fCompany").value = viewMode==="company" ? COMPANIES[0] : "";
+    if(viewMode==="group") document.getElementById("pa-fProvince").value = "";
+    if(viewMode!=="company") document.getElementById("pa-fCompany").value = "";
     document.getElementById("pa-fIndustry").value=document.getElementById("pa-fLevel").value=document.getElementById("pa-fRisk").value=document.getElementById("pa-fExpansion").value=document.getElementById("pa-fVol").value="";
     activePreset=null;
     document.querySelectorAll("#page-priceAnalysis .pa-chip").forEach(function(x){x.classList.remove("active");});
     paUpdateTitle();
     filtered = paGetFiltered();
     paRender();
-    paRenderKpis(document.getElementById("pa-fCompany").value);
+    paRenderKpis();
   };
   window.paApplyPreset = function(name,el){
     if(activePreset===name){ activePreset=null; el.classList.remove("active"); }
@@ -11422,21 +11494,39 @@ init();
     viewMode=mode;
     document.querySelectorAll("#pa-viewSwitch button").forEach(function(b){b.classList.remove("active");});
     el.classList.add("active");
-    paUpdateCompanyOptions(); paUpdateTitle(); paApplyFilter();
+    paUpdateProvinceOptions(); paUpdateCompanyOptions(); paUpdateTitle(); paApplyFilter();
   };
+  function paUpdateProvinceOptions(){
+    var sel=document.getElementById("pa-fProvince");
+    sel.innerHTML="";
+    var showProvince = (viewMode==="group");
+    sel.style.display = showProvince ? "" : "none";
+    if(!showProvince) return;
+    var o=document.createElement("option"); o.value=""; o.textContent="全部省公司"; sel.appendChild(o);
+    PROVINCES.forEach(function(p){ var o=document.createElement("option"); o.value=p; o.textContent=p; sel.appendChild(o); });
+    sel.value = "";
+  }
   function paUpdateCompanyOptions(){
     var sel=document.getElementById("pa-fCompany");
     sel.innerHTML="";
-    if(viewMode==="province"){ var o=document.createElement("option"); o.value=""; o.textContent="全部项目公司"; sel.appendChild(o); }
-    COMPANIES.forEach(function(c){ var o=document.createElement("option"); o.value=c; o.textContent=c; sel.appendChild(o); });
-    sel.value = viewMode==="company" ? COMPANIES[0] : "";
+    var showCompany = (viewMode!=="company");
+    sel.style.display = showCompany ? "" : "none";
+    if(!showCompany) return;
+    if(viewMode==="province" || viewMode==="group"){ var o=document.createElement("option"); o.value=""; o.textContent="全部项目公司"; sel.appendChild(o); }
+    COMPANIES.forEach(function(c){
+      if(viewMode==="province" && COMPANY_PROVINCE[c] !== CURRENT_PROVINCE) return;
+      var o=document.createElement("option"); o.value=c; o.textContent=c; sel.appendChild(o);
+    });
+    sel.value = "";
   }
   function paUpdateTitle(){
     var sub=document.getElementById("pa-pageSub");
-    if(viewMode==="company") sub.textContent = document.getElementById("pa-fCompany").value + " · 工业客户 · 数据日期 2026-08-09";
-    else sub.textContent = "省公司视角 · 工业客户 · 数据日期 2026-08-09";
+    if(viewMode==="company") sub.textContent = CURRENT_COMPANY + " · 工业客户 · 数据日期 2026-08-09";
+    else if(viewMode==="province") sub.textContent = CURRENT_PROVINCE + " · 工业客户 · 数据日期 2026-08-09";
+    else sub.textContent = "总公司视角 · 全国 · 工业客户 · 数据日期 2026-08-09";
   }
-  window.paOnCompanyChange = function(){ paUpdateTitle(); paApplyFilter(); };
+  window.paOnCompanyChange = function(){ paApplyFilter(); };
+  window.paOnProvinceChange = function(){ paUpdateCompanyOptions(); paApplyFilter(); };
 
   function paRenderInsight(){
     var list=filtered, n=list.length;
@@ -11480,7 +11570,8 @@ init();
   window.paExportToExcel = function(){
     if(typeof XLSX === 'undefined'){ toast('未加载 Excel 组件', 'info'); return; }
     var cols = [{key:"name", title:"客户名称"}];
-    if(viewMode==="province") cols.push({key:"company", title:"所属项目公司"});
+    if(viewMode==="group") cols.push({key:"province", title:"所属省公司"});
+    if(viewMode==="group" || viewMode==="province") cols.push({key:"company", title:"所属项目公司"});
     cols.push({key:"industry", title:"主营产业"},{key:"level", title:"等级"},
       {key:"gas", title:"月用气量(方)", format:function(v){return gasVal(v)[0];}},
       {key:"gasMom", title:"用气波动", format:function(v){return gasMomVal(v)+"%";}},
@@ -11501,7 +11592,7 @@ init();
     var ws = XLSX.utils.json_to_sheet(data);
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "客户明细");
-    var title = document.getElementById("pa-fCompany").value ? document.getElementById("pa-fCompany").value : "全省";
+    var title = viewMode==="group" ? "全国" : (document.getElementById("pa-fCompany").value || document.getElementById("pa-fProvince").value || "全省");
     XLSX.writeFile(wb, "客户分析_"+title+"_"+new Date().toLocaleDateString('zh-CN').replace(/\//g,'-')+".xlsx");
     toast('已导出 '+filtered.length+' 户客户明细', 'success');
   };
@@ -11509,8 +11600,9 @@ init();
   function paInit(){
     var indSel=document.getElementById("pa-fIndustry");
     INDUSTRIES.forEach(function(i){ var o=document.createElement("option"); o.textContent=i; indSel.appendChild(o); });
-    paUpdateCompanyOptions(); paUpdateTitle();
-    paRenderKpis(document.getElementById("pa-fCompany").value); paRender();
+    paUpdateProvinceOptions(); paUpdateCompanyOptions(); paUpdateTitle();
+    filtered = paGetFiltered();
+    paRenderKpis(); paRender();
   }
 
   window.openPriceAnalysis = function(){ cdShowPage('page-priceAnalysis','customerManager'); paInit(); };
@@ -12108,13 +12200,13 @@ window.cdShowPage = function(id, navId){
   var configs = JSON.parse(JSON.stringify(DEFAULT_CONFIGS));
   var customers = JSON.parse(JSON.stringify(MOCK_CUSTOMERS));
   // 初始化客户数据：添加省公司字段，映射项目公司
-  var PROJECT_COMPANY_MAP = { '济南项目公司': '邹城昆仑燃气' };
+  var PROJECT_COMPANY_MAP = { '济南项目公司': '邹城公司' };
   customers.forEach(function(c, idx){
     // 添加省公司字段（全部归属山东省公司）
     c.province_company = '山东省公司';
-    // 映射项目公司（济南项目公司 -> 邹城昆仑燃气，其他按序号分配）
+    // 映射项目公司（济南项目公司 -> 邹城公司，其他按序号分配）
     if(c.project_company === '济南项目公司' || !c.project_company){
-      var pcs = ['邹城昆仑燃气', '菏泽燃气', '聊城金捷', '章丘华气'];
+      var pcs = ['邹城公司', '菏泽公司', '聊城公司', '章丘公司'];
       c.project_company = pcs[idx % 4];
     }
   });
@@ -12304,7 +12396,7 @@ window.cdShowPage = function(id, navId){
   // 省公司列表
   var PROVINCE_COMPANIES = ['山东省公司'];
   // 项目公司列表
-  var PROJECT_COMPANIES = ['邹城昆仑燃气', '菏泽燃气', '聊城金捷', '章丘华气'];
+  var PROJECT_COMPANIES = ['邹城公司', '菏泽公司', '聊城公司', '章丘公司'];
   // 当前视角: company=项目公司, province=省公司, group=总公司
   var gcCurrentViewMode = 'company';
 
