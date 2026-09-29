@@ -1802,6 +1802,10 @@ table { border-collapse: collapse; width: 100%; }
 .cdmap .map-wrap { flex:1; position:relative; min-width:0; }
 .cdmap .side-handle { position:absolute; left:0; top:50%; transform:translateY(-50%); width:16px; height:56px; z-index:6; display:flex; align-items:center; justify-content:center; background:var(--panel); border:1px solid var(--line); border-left:none; border-radius:0 8px 8px 0; box-shadow:2px 0 8px rgba(30,50,60,.10); color:var(--muted); font-size:11px; line-height:1; cursor:col-resize; user-select:none; transition:color .15s, border-color .15s; }
 .cdmap .side-handle:hover { color:var(--brand); border-color:var(--brand); }
+.cdmap .map-back { position:absolute; top:14px; left:26px; z-index:6; display:flex; align-items:center; gap:4px; height:28px; padding:0 11px 0 8px; background:var(--panel); border:1px solid var(--line); border-radius:14px; box-shadow:0 2px 10px rgba(30,50,60,.10); color:#2b3a42; font-size:12px; font-family:inherit; cursor:pointer; transition:color .15s, border-color .15s; }
+.cdmap .map-back:hover { color:var(--brand); border-color:var(--brand); }
+.cdmap .map-back .mb-ico { font-size:14px; line-height:1; color:var(--muted); }
+.cdmap .map-back:hover .mb-ico { color:var(--brand); }
 .cdmap #map { position:absolute; inset:0; }
 .cdmap .toolbar { position:absolute; top:14px; right:14px; z-index:5; display:flex; flex-direction:column; gap:8px; }
 .cdmap .tool-card { background:var(--panel); border:1px solid var(--line); border-radius:10px; box-shadow:0 2px 10px rgba(30,50,60,.10); padding:9px 11px; font-size:12px; min-width:162px; }
@@ -2551,6 +2555,7 @@ table { border-collapse: collapse; width: 100%; }
                 <div class="map-wrap">
                   <canvas id="map"></canvas>
                   <div class="side-handle" id="sideHandle" title="拖动调整宽度 · 点击收起/展开"><span id="sideArrow">‹</span></div>
+                  <button type="button" class="map-back" id="mapBack" style="display:none"><span class="mb-ico">‹</span>返回</button>
                   <div class="zoom-hint" id="zoomHint">滚轮或点击可缩放切换：全国 → 省 → 市</div>
                   <div class="toolbar">
                     <div class="tool-card">
@@ -10284,14 +10289,20 @@ init();
   const $id = (id) => document.getElementById(id);
 
   /* ================= 数据 ================= */
+  /* 状态配色规范 —— 每个状态成对定义三种色，保证任何底色上的文字都可读：
+       color = 图钉 / 标签的底色
+       text  = 写在 color 上的字色（浅底配深字，深底配白字）
+       ink   = 把该状态当"文字"用在白底 / 浅底时的深色版
+     对比度按 WCAG 公式核算：底上字色最低 4.35、浅底字色最低 4.42，
+     远优于原先"所有状态统一用白字"（最低仅 1.97）。改色时请同步复核这三项。 */
   const STATUS = {
-    tovisit:  { name: '待走访',      color: '#3D8BFF', desc: '新入池、还没上过门的客户' },
-    follow:   { name: '意向跟进中',  color: '#FF9F43', desc: '首访后判断有意向，正在重点跟进' },
-    signed:   { name: '已推送报装',  color: '#3CD278', desc: '已进入报装流程' },
-    opened:   { name: '已签约',      color: '#0E8A4A', desc: '已开户的客户' },
-    building: { name: '在建',        color: '#7C5CFF', desc: '厂房还在建设的客户' },
-    stalled:  { name: '停滞',        color: '#F5483B', desc: '长期未走访/跟进中断' },
-    nointent: { name: '不用气',      color: '#9AA5B5', desc: '不能开发，标记后不再投入精力' },
+    tovisit:  { name: '待走访',      color: '#3D8BFF', text: '#06204A', ink: '#1B5FC1', desc: '新入池、还没上过门的客户' },
+    follow:   { name: '意向跟进中',  color: '#FF9F43', text: '#6B2E00', ink: '#B35A00', desc: '首访后判断有意向，正在重点跟进' },
+    signed:   { name: '已推送报装',  color: '#3CD278', text: '#0B4A28', ink: '#147A44', desc: '已进入报装流程' },
+    opened:   { name: '已签约',      color: '#0E8A4A', text: '#ffffff', ink: '#0E8A4A', desc: '已开户的客户' },
+    building: { name: '在建',        color: '#7C5CFF', text: '#ffffff', ink: '#5B3BD0', desc: '厂房还在建设的客户' },
+    stalled:  { name: '停滞',        color: '#F5483B', text: '#4A0B06', ink: '#C02015', desc: '长期未走访/跟进中断' },
+    nointent: { name: '不用气',      color: '#9AA5B5', text: '#2F3A44', ink: '#5A6773', desc: '不能开发，标记后不再投入精力' },
   };
 
   const customers = [
@@ -10436,7 +10447,7 @@ init();
   /* —— 客户图钉标记 —— */
   let selected = null;
   const pinRects = [];
-  function drawPin(x, y, color, label, sel, dim) {
+  function drawPin(x, y, color, ink, label, sel, dim) {
     ctx.save();
     if (dim) ctx.globalAlpha = .28;
     if (sel) { ctx.fillStyle = color + '2e'; ctx.beginPath(); ctx.arc(x, y, 17, 0, 7); ctx.fill(); }
@@ -10450,7 +10461,7 @@ init();
     ctx.fillStyle = sel ? '#fff' : 'rgba(255,255,255,.92)';
     ctx.strokeStyle = color; ctx.lineWidth = sel ? 1.8 : 1.2;
     ctx.beginPath(); ctx.roundRect(lx, ly, lw, lh, 7); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = sel ? color : '#3a4750';
+    ctx.fillStyle = sel ? ink : '#3a4750';
     ctx.fillText(label, lx + 6, ly + 11);
     ctx.restore();
     pinRects.push({ x: lx, y: ly, w: lw, h: lh, cx: x, cy: y });
@@ -10461,7 +10472,7 @@ init();
       if (!activeFilters.has(c.status)) return;
       const sel = selected && selected.id === c.id;
       const dim = selected && !sel;
-      drawPin(c.x * W, c.y * H, STATUS[c.status].color, c.name, sel, dim);
+      drawPin(c.x * W, c.y * H, STATUS[c.status].color, STATUS[c.status].ink, c.name, sel, dim);
     });
   }
 
@@ -10832,6 +10843,13 @@ init();
       Object.values(STATUS).forEach(v => { const r = document.createElement('div'); r.className = 'row'; r.innerHTML = `<span class="pin" style="background:${v.color}"></span><b style="min-width:66px">${v.name}</b><span style="color:var(--muted)">${v.desc}</span>`; rows.appendChild(r); });
     }
   }
+  /* —— 返回上一级：市级→省级→全国（按钮文案固定为「返回」） —— */
+  function renderBack() {
+    const btn = $id('mapBack');
+    if (!btn) return;
+    btn.style.display = viewLevel === 0 ? 'none' : 'flex';
+  }
+  $id('mapBack').onclick = () => { if (viewLevel === 2) goProvince(currentProvince); else goCountry(); };
   function syncUI() {
     const detail = viewLevel === 2;
     document.querySelector('#page-marketDev .toolbar').style.display = detail ? '' : 'none';
@@ -10839,6 +10857,7 @@ init();
     document.querySelector('#page-marketDev .search-box').style.display = detail ? '' : 'none';
     $id('poolTitle').textContent = detail ? '客户池' : (viewLevel === 0 ? '全国各省' : currentProvince.name + '各市');
     renderLegend();
+    renderBack();
   }
   let hintTimer = null;
   function showZoomHint(text) { const h = $id('zoomHint'); h.textContent = text; h.classList.add('show'); clearTimeout(hintTimer); hintTimer = setTimeout(() => h.classList.remove('show'), 1600); }
@@ -11049,7 +11068,7 @@ init();
     shown.slice(start, start + per).forEach(c => {
       const el = document.createElement('div');
       el.className = 'cust' + (selected && selected.id === c.id ? ' sel' : '');
-      el.innerHTML = `<div class="name">${c.name}<span class="badge" style="background:${STATUS[c.status].color}">${STATUS[c.status].name}</span></div><div class="meta"><span>${c.type}${c.load ? ' · ' + c.load.toLocaleString() + ' m³/日' : ''}</span><span>走访 ${c.last}</span></div>`;
+      el.innerHTML = `<div class="name">${c.name}<span class="badge" style="background:${STATUS[c.status].color};color:${STATUS[c.status].text}">${STATUS[c.status].name}</span></div><div class="meta"><span>${c.type}${c.load ? ' · ' + c.load.toLocaleString() + ' m³/日' : ''}</span><span>走访 ${c.last}</span></div>`;
       el.onclick = () => { selected = c; renderList(); draw(); };
       list.appendChild(el);
     });
