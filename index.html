@@ -1759,16 +1759,9 @@ table { border-collapse: collapse; width: 100%; }
   background:#f2f5f7; box-shadow:var(--shadow-sm);
 }
 .cdmap .app { display:flex; flex-direction:column; height:100%; }
-.cdmap .cdm-header { height:52px; flex:0 0 52px; display:flex; align-items:center; gap:14px; background:linear-gradient(90deg,#3D8BFF,#3CD278); color:#fff; padding:0 18px; }
-.cdmap .cdm-header h1 { font-size:16px; font-weight:600; letter-spacing:.5px; white-space:nowrap; }
-.cdmap .cdm-header .sub { font-size:12px; opacity:.9; white-space:nowrap; }
-.cdmap .stats { margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
-.cdmap .stat { display:flex; align-items:center; gap:7px; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.24); border-radius:20px; padding:4px 12px; font-size:12px; cursor:pointer; transition:background .2s; user-select:none; }
-.cdmap .stat:hover { background:rgba(255,255,255,.28); }
-.cdmap .stat .dot { width:9px; height:9px; border-radius:50%; }
-.cdmap .stat b { font-size:14px; font-weight:700; }
 .cdmap .main { flex:1; display:flex; min-height:0; }
 .cdmap .side { width:288px; flex:0 0 288px; background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column; z-index:10; }
+.cdmap .side.collapsed { width:0; flex-basis:0; border-right:none; overflow:hidden; }
 .cdmap .side-head { padding:12px 14px 8px; border-bottom:1px solid var(--line); }
 .cdmap .side-head h2 { font-size:14px; font-weight:600; margin-bottom:8px; }
 .cdmap .filter-drop { position:relative; margin-top:8px; }
@@ -1793,37 +1786,36 @@ table { border-collapse: collapse; width: 100%; }
 .cdmap .search-box input { width:100%; padding:6px 10px; border:1px solid var(--line); border-radius:7px; font-size:12px; outline:none; }
 .cdmap .search-box input:focus { border-color:var(--brand); }
 .cdmap .cust-list { flex:1; overflow-y:auto; }
-.cdmap .cust { padding:10px 14px; border-bottom:1px solid #eef2f4; cursor:pointer; transition:background .15s; }
+.cdmap .cust { height:58px; box-sizing:border-box; padding:0 14px; display:flex; flex-direction:column; justify-content:center; border-bottom:1px solid #eef2f4; cursor:pointer; transition:background .15s; }
 .cdmap .cust:hover { background:#F0F6FF; }
 .cdmap .cust.sel { background:#EAF2FF; border-left:3px solid var(--brand); padding-left:11px; }
 .cdmap .cust .name { font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px; }
 .cdmap .cust .meta { font-size:11px; color:var(--muted); margin-top:3px; display:flex; justify-content:space-between; }
 .cdmap .badge { font-size:10px; padding:1px 7px; border-radius:9px; color:#fff; font-weight:600; }
+.cdmap .cust-pager { flex:0 0 38px; height:38px; box-sizing:border-box; display:none; align-items:center; justify-content:space-between; gap:8px; padding:0 12px; border-top:1px solid var(--line); background:var(--panel); }
+.cdmap .cust-pager .pg-info { font-size:11px; color:var(--muted); white-space:nowrap; }
+.cdmap .cust-pager .pg-btns { display:flex; align-items:center; gap:3px; }
+.cdmap .cust-pager button { min-width:24px; height:24px; padding:0 5px; border:1px solid var(--line); border-radius:6px; background:#fff; color:#2b3a42; font-size:12px; line-height:1; font-family:inherit; cursor:pointer; }
+.cdmap .cust-pager button:hover:not(:disabled) { border-color:var(--brand); color:var(--brand); }
+.cdmap .cust-pager button.on { background:var(--brand); border-color:var(--brand); color:#fff; font-weight:600; }
+.cdmap .cust-pager button:disabled { opacity:.35; cursor:not-allowed; }
 .cdmap .map-wrap { flex:1; position:relative; min-width:0; }
+.cdmap .side-handle { position:absolute; left:0; top:50%; transform:translateY(-50%); width:16px; height:56px; z-index:6; display:flex; align-items:center; justify-content:center; background:var(--panel); border:1px solid var(--line); border-left:none; border-radius:0 8px 8px 0; box-shadow:2px 0 8px rgba(30,50,60,.10); color:var(--muted); font-size:11px; line-height:1; cursor:col-resize; user-select:none; transition:color .15s, border-color .15s; }
+.cdmap .side-handle:hover { color:var(--brand); border-color:var(--brand); }
 .cdmap #map { position:absolute; inset:0; }
 .cdmap .toolbar { position:absolute; top:14px; right:14px; z-index:5; display:flex; flex-direction:column; gap:8px; }
-.cdmap .tool-card { background:var(--panel); border-radius:10px; box-shadow:0 2px 12px rgba(30,50,60,.14); padding:10px 12px; font-size:12px; min-width:184px; }
-.cdmap .tool-card h3 { font-size:12px; font-weight:700; color:var(--brand-dark); margin-bottom:7px; }
-.cdmap .lyr { display:flex; align-items:center; gap:7px; padding:3px 0; cursor:pointer; user-select:none; }
-.cdmap .lyr input { accent-color:var(--brand); }
-.cdmap .sw { width:22px; height:5px; border-radius:3px; display:inline-block; }
-.cdmap .legend { position:absolute; left:14px; bottom:14px; z-index:5; background:var(--panel); border-radius:10px; box-shadow:0 2px 12px rgba(30,50,60,.14); padding:10px 13px; font-size:11px; max-width:430px; }
-.cdmap .legend h3 { font-size:12px; font-weight:700; color:var(--brand-dark); margin-bottom:6px; }
-.cdmap .legend .row { display:flex; align-items:center; gap:7px; padding:2px 0; }
-.cdmap .legend .pin { width:11px; height:11px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); border:1.5px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.15); flex:0 0 auto; }
-.cdmap .analysis { position:absolute; right:14px; bottom:14px; z-index:6; width:312px; background:var(--panel); border-radius:12px; box-shadow:0 4px 20px rgba(30,50,60,.2); overflow:hidden; transform:translateY(14px); opacity:0; pointer-events:none; transition:all .25s; }
-.cdmap .analysis.show { transform:none; opacity:1; pointer-events:auto; }
-.cdmap .analysis .a-head { background:linear-gradient(90deg,#3D8BFF,#3CD278); color:#fff; padding:10px 14px; font-size:13px; font-weight:600; display:flex; justify-content:space-between; align-items:center; }
-.cdmap .analysis .a-close { cursor:pointer; opacity:.8; font-size:16px; line-height:1; }
-.cdmap .analysis .a-body { padding:12px 14px; font-size:12px; }
-.cdmap .a-kv { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px dashed #eef2f4; }
-.cdmap .a-kv span:first-child { color:var(--muted); }
-.cdmap .verdict { margin-top:10px; padding:9px 11px; border-radius:8px; font-weight:600; font-size:12.5px; line-height:1.5; }
-.cdmap .v-good { background:#E8F9F0; color:#1FA96B; border:1px solid #8FE0B2; }
-.cdmap .v-mid { background:#fff4e0; color:#a35f00; border:1px solid #f5d9a6; }
-.cdmap .v-bad { background:#fdecea; color:#b03024; border:1px solid #f3c1bb; }
-.cdmap .a-tip { margin-top:8px; font-size:11px; color:var(--muted); line-height:1.6; }
-.cdmap .a-btn { margin-top:10px; width:100%; padding:7px 0; border:none; border-radius:7px; background:var(--brand); color:#fff; font-size:12px; font-weight:600; cursor:pointer; }
+.cdmap .tool-card { background:var(--panel); border:1px solid var(--line); border-radius:10px; box-shadow:0 2px 10px rgba(30,50,60,.10); padding:9px 11px; font-size:12px; min-width:162px; }
+.cdmap .tool-card h3 { font-size:11.5px; font-weight:700; color:var(--brand-dark); letter-spacing:.3px; margin-bottom:6px; }
+.cdmap .lyr { display:flex; align-items:center; gap:6px; padding:2.5px 0; cursor:pointer; user-select:none; font-size:11.5px; color:#3a4750; }
+.cdmap .lyr input { accent-color:var(--brand); width:13px; height:13px; margin:0; flex:0 0 auto; }
+.cdmap .sw { width:14px; height:4px; border-radius:2px; display:inline-block; flex:0 0 auto; }
+.cdmap .sw-ring { width:14px; height:14px; flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center; }
+.cdmap .sw-ring::before { content:''; width:9px; height:9px; border-radius:50%; border:1.5px dashed var(--brand); }
+.cdmap .legend { position:absolute; left:14px; bottom:14px; z-index:5; background:var(--panel); border:1px solid var(--line); border-radius:10px; box-shadow:0 2px 10px rgba(30,50,60,.10); padding:9px 12px; font-size:11px; max-width:430px; }
+.cdmap .legend h3 { font-size:11.5px; font-weight:700; color:var(--brand-dark); letter-spacing:.3px; margin-bottom:5px; }
+.cdmap .legend .row { display:flex; align-items:center; gap:6px; padding:1.5px 0; }
+.cdmap .legend .pin { width:9px; height:9px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); border:1.5px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.12); flex:0 0 auto; }
+.cdmap .a-btn { margin-top:8px; width:100%; padding:6px 0; border:none; border-radius:6px; background:var(--brand); color:#fff; font-size:11.5px; font-weight:600; cursor:pointer; transition:background .15s; }
 .cdmap .a-btn:hover { background:var(--brand-dark); }
 .cdmap .a-btn.active { background:var(--brand-dark); }
 .cdmap .a-btn-danger { background:#e0453a; }
@@ -1838,20 +1830,13 @@ table { border-collapse: collapse; width: 100%; }
 .cdmap .pb-stats b { color:#2b3a42; }
 .cdmap #btnSimulate { border:1px solid var(--brand); color:var(--brand); background:#fff; border-radius:6px; padding:5px 12px; font-size:12px; cursor:pointer; font-weight:600; white-space:nowrap; }
 .cdmap #btnSimulate:hover { background:var(--brand); color:#fff; }
-.cdmap .popup { position:absolute; z-index:8; background:var(--panel); border-radius:9px; box-shadow:0 3px 14px rgba(30,50,60,.22); padding:9px 12px; font-size:12px; pointer-events:none; transform:translate(-50%,-118%); white-space:nowrap; }
+.cdmap .popup { position:absolute; z-index:8; background:var(--panel); border:1px solid var(--line); border-radius:10px; box-shadow:0 2px 10px rgba(30,50,60,.12); padding:9px 12px; font-size:12px; pointer-events:none; transform:translate(-50%,-118%); white-space:nowrap; }
 .cdmap .popup .p-name { font-weight:700; font-size:13px; }
 .cdmap .popup .p-row { color:var(--muted); margin-top:2px; }
 .cdmap .popup .p-key { margin-top:6px; padding-top:5px; border-top:1px dashed #eef2f4; color:var(--brand-dark); font-weight:600; font-size:11px; }
 .cdmap .popup .p-cust { color:#2b3a42; margin-top:2px; display:flex; align-items:center; gap:6px; }
 .cdmap .popup .p-cust .kdot { width:7px; height:7px; border-radius:50%; flex:0 0 auto; }
 .cdmap .popup .p-cust .kst { color:var(--muted); font-size:11px; }
-.cdmap .crumb { position:absolute; top:14px; left:14px; z-index:6; background:var(--panel); border-radius:9px; box-shadow:0 2px 12px rgba(30,50,60,.14); padding:7px 12px; font-size:12px; display:flex; align-items:center; gap:5px; user-select:none; }
-.cdmap .crumb span { cursor:pointer; color:var(--brand); font-weight:600; }
-.cdmap .crumb span:hover { text-decoration:underline; }
-.cdmap .crumb span.cur { color:#2b3a42; cursor:default; }
-.cdmap .crumb span.cur:hover { text-decoration:none; }
-.cdmap .crumb .sep { color:var(--muted); cursor:default; }
-.cdmap .crumb .sep:hover { text-decoration:none; }
 .cdmap .zoom-hint { position:absolute; bottom:76px; left:50%; transform:translateX(-50%); z-index:7; background:rgba(20,40,50,.74); color:#fff; border-radius:16px; padding:5px 14px; font-size:11px; pointer-events:none; opacity:0; transition:opacity .3s; white-space:nowrap; }
 .cdmap .zoom-hint.show { opacity:1; }
 .cdmap ::-webkit-scrollbar { width:6px; }
@@ -2541,11 +2526,6 @@ table { border-collapse: collapse; width: 100%; }
         <div class="cd-panel active" id="cd-panel-map">
           <div class="cdmap">
             <div class="app">
-              <div class="cdm-header">
-                <h1>客户池地图</h1>
-                <span class="sub">地址落图 · 状态随走访更新 · 管网接驳分析</span>
-                <div class="stats" id="stats"></div>
-              </div>
               <div class="main">
                 <aside class="side">
                   <div class="side-head">
@@ -2566,10 +2546,11 @@ table { border-collapse: collapse; width: 100%; }
                     <div class="search-box"><input id="searchInput" placeholder="搜索客户名称…"></div>
                   </div>
                   <div class="cust-list" id="custList"></div>
+                  <div class="cust-pager" id="custPager"></div>
                 </aside>
                 <div class="map-wrap">
                   <canvas id="map"></canvas>
-                  <div class="crumb" id="crumb"></div>
+                  <div class="side-handle" id="sideHandle" title="拖动调整宽度 · 点击收起/展开"><span id="sideArrow">‹</span></div>
                   <div class="zoom-hint" id="zoomHint">滚轮或点击可缩放切换：全国 → 省 → 市</div>
                   <div class="toolbar">
                     <div class="tool-card">
@@ -2582,19 +2563,12 @@ table { border-collapse: collapse; width: 100%; }
                       <h3>管网图层</h3>
                       <label class="lyr"><input type="checkbox" id="lyrMain" checked><span class="sw" style="background:var(--pipe-main)"></span>中压主干管</label>
                       <label class="lyr"><input type="checkbox" id="lyrBranch" checked><span class="sw" style="background:var(--pipe-branch)"></span>低压支管</label>
-                      <label class="lyr"><input type="checkbox" id="lyrRadius" checked><span style="width:22px;text-align:center;color:var(--brand)">◎</span>500m 接驳圈</label>
+                      <label class="lyr"><input type="checkbox" id="lyrRadius" checked><span class="sw-ring"></span>500m 接驳圈</label>
                     </div>
                   </div>
                   <div class="legend" id="legend">
                     <h3 id="legendTitle">开发状态</h3>
                     <div id="legendRows"></div>
-                  </div>
-                  <div class="analysis" id="analysis">
-                    <div class="a-head">
-                      <span>接驳可行性分析</span>
-                      <span class="a-close" id="aClose">×</span>
-                    </div>
-                    <div class="a-body" id="aBody"></div>
                   </div>
                   <div class="popup" id="popup" style="display:none"></div>
                 </div>
@@ -9603,8 +9577,8 @@ init();
 (function () {
   'use strict';
   /* ---------- 统一状态色（蓝绿主题） ---------- */
-  const SCOLOR = { '待走访': '#3D8BFF', '意向跟进中': '#FF9F43', '已签约/报装': '#3CD278', '停滞': '#F5483B', '无意向': '#9AA5B5' };
-  const statusList = ['待走访', '意向跟进中', '已签约/报装', '停滞', '无意向'];
+  const SCOLOR = { '待走访': '#3D8BFF', '意向跟进中': '#FF9F43', '已推送报装': '#3CD278', '停滞': '#F5483B', '不用气': '#9AA5B5' };
+  const statusList = ['待走访', '意向跟进中', '已推送报装', '停滞', '不用气'];
   const stageList = ['意向跟进中', '签约报装'];
   const intentTag = i => ({ '高': 'background:#FDECEC;color:#F5483B', '中': 'background:#FFF3E2;color:#FF9F43', '低': 'background:#E6F9FB;color:#2FB8CC', '无': 'background:#F0F2F7;color:#9AA5B5' })[i] || '';
   const statusTag = s => `background:${SCOLOR[s]}1a;color:${SCOLOR[s]}`;
@@ -9663,12 +9637,12 @@ init();
     mk('淄博金晶陶瓷有限公司', '工业', '天眼查', '陶瓷', '张店区', '意向跟进中', '高', '≥3000方/日', '意向跟进中', '已建成', 150, 120, '2026-08-01', '2026-09-30', '王开发', 0.3),
     mk('鲁中玻璃制品厂', '工业', '政府名单', '玻璃', '淄川区', '意向跟进中', '中', '1000-3000方/日', '意向跟进中', '已建成', 330, 200, '2026-07-28', '2026-10-31', '李扫街', 0.8),
     mk('山东恒润机械科技', '工业', '天眼查', '机械', '高新区', '待走访', null, null, '接触', '-', 520, 150, null, null, '王开发', 0.2),
-    mk('齐翔化工材料公司', '工业', '环评安评', '化工', '临淄区', '已签约/报装', '高', '≥3000方/日', '签约报装', '已建成', 680, 300, '2026-07-20', '2026-06-30', '赵跟进', 0.1),
+    mk('齐翔化工材料公司', '工业', '环评安评', '化工', '临淄区', '已推送报装', '高', '≥3000方/日', '签约报装', '已建成', 680, 300, '2026-07-20', '2026-06-30', '赵跟进', 0.1),
     mk('张店老王家常菜馆', '商服', '扫街新增', null, '张店区', '意向跟进中', '中', '<1000方/日', '意向跟进中', '-', 210, 320, '2026-08-03', '2026-08-31', '李扫街', 0.4),
     mk('淄博华泰纺织印染', '工业', '天眼查', '服装纺织', '周村区', '意向跟进中', '高', '1000-3000方/日', '意向跟进中', '明年及以后', 420, 380, '2026-07-15', '2026-12-31', '王开发', 1.2),
     mk('桓台鑫源玻璃纤维', '工业', '环评安评', '非金属', '桓台县', '意向跟进中', '中', '≥3000方/日', '意向跟进中', '本年内', 500, 460, '2026-07-22', null, '赵跟进', 0.7),
     mk('临淄新源造纸厂', '工业', '政府名单', '造纸', '临淄区', '停滞', '中', '1000-3000方/日', '意向跟进中', '已建成', 750, 180, '2026-05-11', '2026-07-01', '赵跟进', 0.6),
-    mk('川香居火锅店', '商服', '扫街新增', null, '张店区', '无意向', '无', null, '接触', '-', 260, 420, '2026-07-30', null, '李扫街', 0.5),
+    mk('川香居火锅店', '商服', '扫街新增', null, '张店区', '不用气', '无', null, '接触', '-', 260, 420, '2026-07-30', null, '李扫街', 0.5),
     mk('淄博康泰医药包装', '工业', '天眼查', '医药', '高新区', '意向跟进中', '高', '1000-3000方/日', '意向跟进中', '已建成', 560, 260, '2026-08-02', '2026-07-20', '王开发', 0.3),
     mk('博山琉璃工艺厂', '工业', '天眼查', '非金属', '博山区', '待走访', null, null, '接触', '-', 180, 480, null, null, '李扫街', 2.1),
     mk('味美鲜食品加工厂', '工业', '环评安评', '食品制造', '淄川区', '意向跟进中', '中', '<1000方/日', '意向跟进中', '已建成', 380, 90, '2026-07-29', '2026-11-30', '赵跟进', 0.9),
@@ -10129,7 +10103,7 @@ init();
     const c = custByName(v.customer);
     diffs.forEach(([f0, o, n]) => audits.unshift({ id: ++aId, cid: c ? c.id : 0, t: now, u: '王开发(PC)', f: f0, o: String(o).slice(0, 40), n: String(n).slice(0, 40) }));
     if (c) {
-      if (v.intent !== c.intent) { c.intent = v.intent; if (v.intent === '无') c.status = '无意向'; }
+      if (v.intent !== c.intent) { c.intent = v.intent; if (v.intent === '无') c.status = '不用气'; }
       if (c.status === '停滞' && (v.intent === '高' || v.intent === '中' || v.intent === '低')) { audits.unshift({ id: ++aId, cid: c.id, t: now, u: '王开发(PC)', f: '客户状态', o: '停滞', n: '意向跟进中（走访复活）' }); c.status = '意向跟进中'; }
       if (v.scale) c.scale = v.scale;
       c.lastVisit = v.date.slice(0, 10);
@@ -10170,14 +10144,14 @@ init();
         <td>${c.type === '商服' ? '<span class="cd-muted">—</span>' : isUC(c) ? `<span class="cd-tag" style="background:#F3EEFE;color:#7C5CFF">🏗️ ${c.builtTime}</span>` : '<span class="cd-muted">已建成</span>'}</td>
         <td><span class="cd-tag" style="background:#F3EEFE;color:#7C5CFF">${c.stage}</span></td>
         <td class="cd-muted">${c.lastVisit}</td>
-        <td>${inPlan ? '<span class="cd-tag" style="background:#E8F9F0;color:#1FA96B">已在计划</span>' : `<a class="cd-link" onclick="cdAddToPlan(${c.id})">纳入开发计划</a>`}<a class="cd-link red" onclick="cdQuitIntent(${c.id})">无意向</a></td></tr>`;
+        <td>${inPlan ? '<span class="cd-tag" style="background:#E8F9F0;color:#1FA96B">已在计划</span>' : `<a class="cd-link" onclick="cdAddToPlan(${c.id})">纳入开发计划</a>`}<a class="cd-link red" onclick="cdQuitIntent(${c.id})">不用气</a></td></tr>`;
     });
     if (!rows.length) h += `<tr><td colspan="8" style="text-align:center;color:var(--text-tertiary);padding:26px">暂无匹配客户</td></tr>`;
     document.getElementById('cdIntentTable').innerHTML = h + '</tbody>';
   }
   window.cdSetIntentFilter = function (k, v) { F.intent[k] = v; renderIntent(); };
   window.cdAddToPlan = function (id) { const c = customers.find(x => x.id === id); if (c && !c.deadline) { c.deadline = '2026-12-31'; c.owner = '王开发'; toast('已纳入 2026 年度开发计划，默认节点 2026-12-31，请在计划页调整', 'success'); renderIntent(); renderPlan(); } };
-  window.cdQuitIntent = function (id) { const c = customers.find(x => x.id === id); c.status = '无意向'; c.intent = '无'; delete c.deadline; toast('已标记无意向并退回客户池', 'info'); renderIntent(); renderPool(); renderPlan(); };
+  window.cdQuitIntent = function (id) { const c = customers.find(x => x.id === id); c.status = '不用气'; c.intent = '无'; delete c.deadline; toast('已标记不用气并退回客户池', 'info'); renderIntent(); renderPool(); renderPlan(); };
 
   /* ================= 开发计划 ================= */
   function buildPlanFilters() {
@@ -10222,7 +10196,7 @@ init();
   };
   window.cdPushInstall = function (id) {
     const c = customers.find(x => x.id === id); if (!c || c.stage === '签约报装') return;
-    const old = c.stage; c.stage = '签约报装'; c.status = '已签约/报装';
+    const old = c.stage; c.stage = '签约报装'; c.status = '已推送报装';
     audits.unshift({ id: ++aId, cid: c.id, t: '2026-08-06 ' + new Date().toTimeString().slice(0, 5), u: '王开发', f: '开发阶段', o: old, n: '签约报装' });
     toast('✅ 已推送报装：' + c.name + ' 阶段更新为「签约报装」', 'success'); renderPlan(); renderIntent(); renderPool();
   };
@@ -10313,10 +10287,11 @@ init();
   const STATUS = {
     tovisit:  { name: '待走访',      color: '#3D8BFF', desc: '新入池、还没上过门的客户' },
     follow:   { name: '意向跟进中',  color: '#FF9F43', desc: '首访后判断有意向，正在重点跟进' },
-    signed:   { name: '已签约/报装', color: '#3CD278', desc: '已签合同或已进入报装流程' },
-    building: { name: '在建',        color: '#7C5CFF', desc: '招拍挂刚拿地、厂房还在建设的客户' },
-    stalled:  { name: '停滞',        color: '#F5483B', desc: '长期未走访/跟进中断，提醒该回访了' },
-    nointent: { name: '无意向',      color: '#9AA5B5', desc: '不用气、不能开发，标记后不再投入精力' },
+    signed:   { name: '已推送报装',  color: '#3CD278', desc: '已进入报装流程' },
+    opened:   { name: '已签约',      color: '#0E8A4A', desc: '已开户的客户' },
+    building: { name: '在建',        color: '#7C5CFF', desc: '厂房还在建设的客户' },
+    stalled:  { name: '停滞',        color: '#F5483B', desc: '长期未走访/跟进中断' },
+    nointent: { name: '不用气',      color: '#9AA5B5', desc: '不能开发，标记后不再投入精力' },
   };
 
   const customers = [
@@ -10398,14 +10373,18 @@ init();
   let W = 0, H = 0, DPR = window.devicePixelRatio || 1;
   const getCSS = v => { const c = document.querySelector('.cdmap'); return c ? getComputedStyle(c).getPropertyValue(v).trim() : ''; };
 
-  function resize() {
+  function fitCanvas() {
     const r = cv.parentElement.getBoundingClientRect();
-    if (r.width < 2 || r.height < 2) return;  // 隐藏时跳过
+    if (r.width < 2 || r.height < 2) return false;  // 隐藏时跳过
     W = r.width; H = r.height;
     cv.width = W * DPR; cv.height = H * DPR;
     cv.style.width = W + 'px'; cv.style.height = H + 'px';
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     draw();
+    return true;
+  }
+  function resize() {
+    if (fitCanvas()) renderList();  // 面板尺寸变化时重算每页条数
   }
   window.addEventListener('resize', resize);
 
@@ -10563,28 +10542,32 @@ init();
   }
 
   function shenzhenSummary() {
-    const s = { total: 0, signed: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 };
+    const s = { total: 0, signed: 0, opened: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 };
     customers.forEach(c => { s.total++; s[c.status] = (s[c.status] || 0) + 1; s.load += (c.load || 0); });
     return s;
   }
   function citySummary(city) { return city.detailed ? shenzhenSummary() : city.summary; }
   function provinceSummary(p) {
-    const s = { total: 0, signed: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 };
+    const s = { total: 0, signed: 0, opened: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 };
     p.cities.forEach(c => { const cs = citySummary(c); for (const k in s) s[k] += (cs[k] || 0); });
     return s;
   }
   function currentSummary() {
-    if (viewLevel === 0) { const s = { total: 0, signed: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 }; regions.forEach(p => { const ps = provinceSummary(p); for (const k in s) s[k] += ps[k]; }); return s; }
+    if (viewLevel === 0) { const s = { total: 0, signed: 0, opened: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 }; regions.forEach(p => { const ps = provinceSummary(p); for (const k in s) s[k] += ps[k]; }); return s; }
     if (viewLevel === 1) return provinceSummary(currentProvince);
     return shenzhenSummary();
   }
   function regionSize() { return viewLevel === 0 ? { w: .17, h: .13 } : { w: .19, h: .14 }; }
-  function regionFill(s) {
-    const rate = s.total ? s.signed / s.total : 0;
-    if (rate >= .5) return '#3CD278';
-    if (rate >= .25) return '#f0a13a';
-    return '#b9c4cc';
-  }
+  /* 区域开发进度（转化率）—— 单色相顺序色阶（青系），刻意与「客户状态」的分类色族区分开：
+     底色越深 = 签约转化率越高。状态色（蓝/橙/绿/紫/红/灰）只出现在点状图钉上，两者不共用色相。 */
+  const REGION_RAMP = [
+    { min: .5,  fill: '#0A6076', text: '#ffffff' },  // ≥50%     开发成熟
+    { min: .25, fill: '#3E97A8', text: '#ffffff' },  // 25%~50%  推进中
+    { min: 0,   fill: '#A9CDD6', text: '#2b3a42' },  // <25%     起步
+  ];
+  function regionStyle(s) { const rate = s && s.total ? s.signed / s.total : 0; return REGION_RAMP.find(b => rate >= b.min); }
+  function regionFill(s) { return regionStyle(s).fill; }
+  function regionText(s) { return regionStyle(s).text; }
   function regionList() { return viewLevel === 0 ? regions : (currentProvince ? currentProvince.cities : []); }
 
   /* ================= 真实地图（GeoJSON 轮廓） ================= */
@@ -10678,7 +10661,7 @@ init();
       ctx.strokeStyle = isHover ? '#2E72E0' : '#ffffff';
       ctx.lineWidth = isHover ? 2 : .8;
       ctx.stroke();
-      if (val) { ctx.fillStyle = regionFill(val) === '#b9c4cc' ? '#3a4750' : '#fff'; ctx.font = 'bold ' + (viewLevel === 0 ? 12 : 11) + 'px "PingFang SC","Microsoft YaHei",sans-serif'; }
+      if (val) { ctx.fillStyle = regionText(val); ctx.font = 'bold ' + (viewLevel === 0 ? 12 : 11) + 'px "PingFang SC","Microsoft YaHei",sans-serif'; }
       else { ctx.fillStyle = '#8a99a2'; ctx.font = '10px "PingFang SC","Microsoft YaHei",sans-serif'; }
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(shortName(it.name), it.labelX, it.labelY);
@@ -10723,8 +10706,7 @@ init();
     ctx.strokeStyle = hover ? '#2E72E0' : 'rgba(255,255,255,.75)';
     ctx.lineWidth = hover ? 2.5 : 1.5;
     ctx.stroke();
-    const dark = fill === '#b9c4cc';
-    ctx.fillStyle = dark ? '#3a4750' : '#fff';
+    ctx.fillStyle = regionText(s);
     ctx.font = 'bold 13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(r.name, x, y - h * 0.16);
@@ -10758,22 +10740,11 @@ init();
   let measureMode = false;
   let measure = { points: [], cursor: null, done: false };
 
-  function snapTarget(nx, ny) {
-    let best = null, bestD = Infinity;
-    visibleCustomers().forEach(c => { const d = Math.hypot(c.x - nx, c.y - ny); if (d < bestD) { bestD = d; best = { kind: 'customer', x: c.x, y: c.y, label: c.name }; } });
-    const scan = (lines, type) => lines.forEach(l => { for (let i = 0; i < l.length - 1; i++) { const r = distToSeg(nx, ny, l[i][0], l[i][1], l[i + 1][0], l[i + 1][1]); if (r.d < bestD) { bestD = r.d; best = { kind: 'pipe', x: r.qx, y: r.qy, label: type }; } } });
-    scan(pipes.main, '中压主干管'); scan(pipes.branch, '低压支管');
-    const CUST = 22 / Math.min(W, H), PIPE = 14 / Math.min(W, H);
-    if (best && best.kind === 'customer' && bestD <= CUST) return best;
-    if (best && best.kind === 'pipe' && bestD <= PIPE) return best;
-    return { kind: null, x: nx, y: ny };
-  }
-  function measureMeters(p1, p2) { const px = Math.hypot(p2.x - p1.x, p2.y - p1.y) * Math.min(W, H); return px / R500() * 500; }
-  function drawMeasureNode(x, y, snap) {
+  function measureMeters(p1, p2) { const px = Math.hypot((p2.x - p1.x) * W, (p2.y - p1.y) * H); return px / R500() * 500; }
+  function drawMeasureNode(x, y) {
     ctx.save();
-    if (snap && snap.kind === 'customer') { ctx.strokeStyle = '#3D8BFF'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, 8, 0, 7); ctx.stroke(); ctx.fillStyle = '#3D8BFF'; ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill(); ctx.font = '10px sans-serif'; ctx.fillStyle = '#2E72E0'; ctx.fillText(snap.label, x + 11, y - 7); }
-    else if (snap && snap.kind === 'pipe') { ctx.fillStyle = '#3D8BFF'; ctx.beginPath(); ctx.arc(x, y, 4.5, 0, 7); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, 4.5, 0, 7); ctx.stroke(); ctx.font = '10px sans-serif'; ctx.fillStyle = '#2E72E0'; ctx.fillText(snap.label, x + 9, y + 13); }
-    else { ctx.strokeStyle = '#3D8BFF'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, 5, 0, 7); ctx.stroke(); ctx.fillStyle = '#3D8BFF'; ctx.beginPath(); ctx.arc(x, y, 2, 0, 7); ctx.fill(); }
+    ctx.strokeStyle = '#3D8BFF'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, 5, 0, 7); ctx.stroke();
+    ctx.fillStyle = '#3D8BFF'; ctx.beginPath(); ctx.arc(x, y, 2, 0, 7); ctx.fill();
     ctx.restore();
   }
   function drawMeasureSeg(p1, p2, preview) {
@@ -10803,12 +10774,12 @@ init();
     const pts = measure.points;
     if (!pts.length) return;
     for (let i = 0; i < pts.length - 1; i++) drawMeasureSeg(pts[i], pts[i + 1], false);
-    pts.forEach(p => drawMeasureNode(p.x * W, p.y * H, p.s));
+    pts.forEach(p => drawMeasureNode(p.x * W, p.y * H));
     if (measureMode && !measure.done && measure.cursor) {
-      const s = snapTarget(measure.cursor.x, measure.cursor.y);
+      const cur = { x: measure.cursor.x, y: measure.cursor.y };
       const last = pts[pts.length - 1];
-      drawMeasureSeg(last, { x: s.x, y: s.y }, true);
-      drawMeasureNode(s.x * W, s.y * H, s);
+      drawMeasureSeg(last, cur, true);
+      drawMeasureNode(cur.x * W, cur.y * H);
     }
     if (pts.length >= 2) {
       const last = pts[pts.length - 1];
@@ -10824,12 +10795,15 @@ init();
       tip.style.display = 'block';
       if (measure.done) tip.innerHTML = '测距完成：<b>' + Math.round(totalMeters()) + ' m</b>（' + measure.points.length + ' 个拐点），点「清除测距」重新测';
       else if (measure.points.length) tip.innerHTML = '已放置 <b>' + measure.points.length + '</b> 个点，继续点击加拐点，<b>双击结束</b>';
-      else tip.innerHTML = '点击<b>客户</b>或<b>管线</b>放置起点（自动吸附），点击加拐点，<b>双击结束</b>';
+      else tip.innerHTML = '点击<b>任意位置</b>放置起点，点击加拐点，<b>双击结束</b>';
     } else tip.style.display = 'none';
     $id('btnMeasureClear').style.display = measure.points.length ? 'block' : 'none';
   }
 
   /* ================= 接驳分析 ================= */
+  /* 以下两个函数都在「屏幕像素坐标」下计算。
+     地图把 0-1 归一化坐标直接拉伸铺满画布（x*W, y*H），横竖比例不同，
+     所以距离必须在像素空间里算，否则横向会被低估 W/H 倍。 */
   function distToSeg(px, py, x1, y1, x2, y2) {
     const dx = x2 - x1, dy = y2 - y1, L2 = dx * dx + dy * dy;
     let t = L2 ? ((px - x1) * dx + (py - y1) * dy) / L2 : 0; t = Math.max(0, Math.min(1, t));
@@ -10838,53 +10812,21 @@ init();
   }
   function nearestPipe(c) {
     let best = null, type = null;
-    const scan = (lines, t) => lines.forEach(l => { for (let i = 0; i < l.length - 1; i++) { const r = distToSeg(c.x, c.y, l[i][0], l[i][1], l[i + 1][0], l[i + 1][1]); if (!best || r.d < best.d) { best = r; type = t; } } });
+    const cx = c.x * W, cy = c.y * H;
+    const scan = (lines, t) => lines.forEach(l => { for (let i = 0; i < l.length - 1; i++) { const r = distToSeg(cx, cy, l[i][0] * W, l[i][1] * H, l[i + 1][0] * W, l[i + 1][1] * H); if (!best || r.d < best.d) { best = r; type = t; } } });
     scan(pipes.main, '中压主干管'); scan(pipes.branch, '低压支管');
-    return best ? { px: best.qx, py: best.qy, dist: best.d * Math.min(W, H), type } : null;
+    // dist 为像素距离；px/py 换回归一化坐标供绘制使用
+    return best ? { px: best.qx / W, py: best.qy / H, dist: best.d, type } : null;
   }
-  function nearbyLoad(c) {
-    let sum = 0, cnt = 0;
-    customers.forEach(o => { if (o.id === c.id) return; const d = Math.hypot(o.x - c.x, o.y - c.y) * Math.min(W, H); if (d <= R500() && (o.status === 'signed' || o.status === 'follow') && o.load) { sum += o.load; cnt++; } });
-    return { sum, cnt };
-  }
-  function showAnalysis(c) {
-    const panel = $id('analysis'), body = $id('aBody');
-    const n = nearestPipe(c);
-    const distM = Math.round(n.dist / R500() * 500);
-    const nb = nearbyLoad(c);
-    let cls, txt;
-    if (distM > 800) { cls = 'v-bad'; txt = '接驳困难 · 建议暂缓'; }
-    else if (distM <= 300) { cls = 'v-good'; txt = '接驳条件优 · 推荐优先开发'; }
-    else if (distM <= 600) { cls = 'v-mid'; txt = '接驳可行 · 需延伸支管约 ' + distM + 'm'; }
-    else { cls = 'v-bad'; txt = '距离偏远 · 建议暂缓'; }
-    let shareTip = '';
-    if (nb.cnt > 0 && distM > 300) shareTip = `周边 500m 内有 ${nb.cnt} 家意向/签约客户（合计 ${nb.sum.toLocaleString()} m³/日），可结合负荷密度综合评估。`;
-    body.innerHTML = `
-      <div class="a-kv"><span>客户</span><b>${c.name}</b></div>
-      <div class="a-kv"><span>类型 / 负荷</span><b>${c.type}${c.load ? (' · 预估 ' + c.load.toLocaleString() + ' m³/日') : ' · 待勘察'}</b></div>
-      <div class="a-kv"><span>最近管线</span><b>${n.type}</b></div>
-      <div class="a-kv"><span>直线距离</span><b style="color:${distM <= 300 ? '#3CD278' : distM <= 600 ? '#a35f00' : '#b03024'}">约 ${distM} m</b></div>
-      ${shareTip ? `<div class="a-tip" style="color:#2E72E0">${shareTip}</div>` : ''}`;
-    panel.classList.add('show');
-  }
-  $id('aClose').onclick = () => { $id('analysis').classList.remove('show'); selected = null; renderList(); draw(); };
 
   /* ================= 三级钻取交互 ================= */
-  function renderCrumb() {
-    const c = $id('crumb');
-    let html = '<span data-lv="0">全国</span>';
-    if (viewLevel >= 1) html += '<span class="sep">›</span><span data-lv="1">' + currentProvince.name + '</span>';
-    if (viewLevel >= 2) html += '<span class="sep">›</span><span class="cur">' + currentCity.name + '</span>';
-    c.innerHTML = html;
-    c.querySelectorAll('span[data-lv]').forEach(el => { el.onclick = () => { el.dataset.lv === '0' ? goCountry() : goProvince(currentProvince); }; });
-  }
   function renderLegend() {
     const title = $id('legendTitle');
     const rows = $id('legendRows');
     rows.innerHTML = '';
     if (viewLevel < 2) {
       title.textContent = '区域开发进度（转化率）';
-      [{ c: '#3CD278', l: '≥50%' }, { c: '#f0a13a', l: '25%~50%' }, { c: '#b9c4cc', l: '<25%' }].forEach(it => { const r = document.createElement('div'); r.className = 'row'; r.innerHTML = `<span class="pin" style="background:${it.c}"></span><b>${it.l}</b>`; rows.appendChild(r); });
+      ['≥50%', '25%~50%', '<25%'].forEach((l, i) => { const r = document.createElement('div'); r.className = 'row'; r.innerHTML = `<span class="pin" style="background:${REGION_RAMP[i].fill}"></span><b>${l}</b>`; rows.appendChild(r); });
     } else {
       title.textContent = '开发状态';
       Object.values(STATUS).forEach(v => { const r = document.createElement('div'); r.className = 'row'; r.innerHTML = `<span class="pin" style="background:${v.color}"></span><b style="min-width:66px">${v.name}</b><span style="color:var(--muted)">${v.desc}</span>`; rows.appendChild(r); });
@@ -10893,7 +10835,6 @@ init();
   function syncUI() {
     const detail = viewLevel === 2;
     document.querySelector('#page-marketDev .toolbar').style.display = detail ? '' : 'none';
-    if (!detail) $id('analysis').classList.remove('show');
     $id('filterDrop').style.display = detail ? '' : 'none';
     document.querySelector('#page-marketDev .search-box').style.display = detail ? '' : 'none';
     $id('poolTitle').textContent = detail ? '客户池' : (viewLevel === 0 ? '全国各省' : currentProvince.name + '各市');
@@ -10904,20 +10845,20 @@ init();
   function goCountry() {
     viewLevel = 0; currentProvince = null; currentCity = null; hoverRegion = null;
     selected = null; measureMode = false; measure = { points: [], cursor: null, done: false }; updateMeasureUI();
-    syncUI(); renderCrumb(); renderList(); renderStats(); draw();
+    syncUI(); renderList(); renderStats(); draw();
     showZoomHint('已缩放到全国视图');
   }
   function goProvince(p) {
     viewLevel = 1; currentProvince = p; currentCity = null; hoverRegion = null; selected = null;
     measureMode = false; measure = { points: [], cursor: null, done: false }; updateMeasureUI();
-    syncUI(); renderCrumb(); renderList(); renderStats(); draw();
+    syncUI(); renderList(); renderStats(); draw();
     ensureProvinceGeo(p);
     showZoomHint('已进入 ' + p.name + '，滚轮或点击继续下钻');
   }
   function goCity(c) {
     viewLevel = 2; currentCity = c; hoverRegion = null; selected = null;
     cam = { zoom: 1, cx: .5, cy: .5 };  // 进入市级视图重置相机
-    syncUI(); renderCrumb(); renderList(); renderStats(); draw();
+    syncUI(); renderList(); renderStats(); draw();
     showZoomHint('已进入 ' + c.name + ' 客户池地图，滚轮可连续缩放');
   }
 
@@ -10936,13 +10877,13 @@ init();
     if (dragMoved) { dragMoved = false; return; }
     if (measureMode) {
       const p = screenToWorld(mx, my);
-      const s = snapTarget(p.wx / W, p.wy / H);
-      if (!measure.done) measure.points.push({ x: s.x, y: s.y, s: s });
+      if (!measure.done) measure.points.push({ x: p.wx / W, y: p.wy / H });
       updateMeasureUI(); draw(); return;
     }
     const i = hitTest(mx, my);
     selected = i >= 0 ? visibleCustomers()[i] : null;
-    if (selected) showAnalysis(selected); else $id('analysis').classList.remove('show');
+    // 点地图上的图钉时，若该客户不在当前页，自动跳到它所在的页
+    if (selected) { const idx = shownCustomers().findIndex(c => c.id === selected.id); if (idx >= 0) custPage = Math.floor(idx / custPerPage()) + 1; }
     renderList(); draw();
   });
   cv.addEventListener('dblclick', e => {
@@ -10984,9 +10925,11 @@ init();
     if (i >= 0) {
       const c = visibleCustomers()[i];
       const sp = worldToScreen(c.x * W, c.y * H);
+      const np = nearestPipe(c);
+      const pipeDistM = np ? Math.round(np.dist / R500() * 500) : null;
       popup.style.display = 'block';
       popup.style.left = sp.x + 'px'; popup.style.top = (sp.y - 4) + 'px';
-      popup.innerHTML = `<div class="p-name">${c.name}</div><div class="p-row">${STATUS[c.status].name} · ${c.type}${c.load ? ' · ' + c.load.toLocaleString() + ' m³/日' : ''}</div><div class="p-row">最近走访：${c.last}　<span style="color:var(--brand)">点击查看接驳分析 →</span></div>`;
+      popup.innerHTML = `<div class="p-name">${c.name}</div><div class="p-row">${STATUS[c.status].name} · ${c.type}${c.load ? ' · 预估用气量 ' + c.load.toLocaleString() + ' m³/日' : ''}</div><div class="p-row">最近走访：${c.last}</div>${np ? `<div class="p-row">最近管线：${np.type} · 直线距离约 ${pipeDistM} m</div>` : ''}`;
     } else popup.style.display = 'none';
   });
   cv.addEventListener('mouseleave', () => popup.style.display = 'none');
@@ -11010,7 +10953,8 @@ init();
     e.preventDefault();
     const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
     if (viewLevel === 2) {
-      // 市级视图：连续缩放（向下滚放大，向上滚缩小）
+      // 市级视图：连续缩放（向下滚放大，向上滚缩小）；已缩到最小时再向上滚，返回省级视图
+      if (e.deltaY < 0 && cam.zoom <= .4) { goProvince(currentProvince); return; }
       cityZoomAt(mx, my, e.deltaY > 0 ? 1.2 : 1 / 1.2);
       draw();
       return;
@@ -11053,29 +10997,63 @@ init();
       const item = document.createElement('label');
       item.className = 'drop-item';
       item.innerHTML = `<input type="checkbox" data-status="${k}"><span class="dot" style="background:${v.color}"></span><span class="name">${v.name}</span><span class="cnt">0</span>`;
-      item.querySelector('input').addEventListener('change', e => { if (e.target.checked) activeFilters.add(k); else activeFilters.delete(k); syncFilterChips(); renderList(); draw(); });
+      item.querySelector('input').addEventListener('change', e => { if (e.target.checked) activeFilters.add(k); else activeFilters.delete(k); syncFilterChips(); custPage = 1; renderList(); draw(); });
       dropList.appendChild(item);
     });
     syncFilterChips();
   }
   dropTrigger.addEventListener('click', e => { e.stopPropagation(); filterDrop.classList.toggle('open'); });
   document.addEventListener('click', e => { if (!filterDrop.contains(e.target)) filterDrop.classList.remove('open'); });
-  $id('dropAll').onclick = () => { activeFilters = new Set(Object.keys(STATUS)); syncFilterChips(); renderList(); draw(); };
-  $id('dropClear').onclick = () => { activeFilters = new Set(); syncFilterChips(); renderList(); draw(); };
-  $id('searchInput').addEventListener('input', e => { searchKw = e.target.value.trim(); renderList(); });
+  $id('dropAll').onclick = () => { activeFilters = new Set(Object.keys(STATUS)); syncFilterChips(); custPage = 1; renderList(); draw(); };
+  $id('dropClear').onclick = () => { activeFilters = new Set(); syncFilterChips(); custPage = 1; renderList(); draw(); };
+  $id('searchInput').addEventListener('input', e => { searchKw = e.target.value.trim(); custPage = 1; renderList(); });
 
+  /* —— 客户列表分页（点击翻页，不滚动） —— */
+  const CUST_ROW_H = 58;   // .cust 固定行高，见 CSS
+  const PAGER_H = 38;      // .cust-pager 固定高度，见 CSS
+  let custPage = 1;
+  const shownCustomers = () => customers.filter(c => activeFilters.has(c.status) && (!searchKw || c.name.includes(searchKw)));
+  function custPerPage() {
+    const list = $id('custList'), side = list.parentElement;
+    const head = side.querySelector('.side-head');
+    const avail = side.clientHeight - (head ? head.offsetHeight : 0) - PAGER_H;
+    return Math.max(3, Math.floor(avail / CUST_ROW_H));
+  }
+  function renderPager(total, pages) {
+    const p = $id('custPager');
+    if (pages <= 1) { p.style.display = 'none'; p.innerHTML = ''; return; }
+    const from = Math.max(1, Math.min(custPage - 2, pages - 4));
+    const to = Math.min(pages, from + 4);
+    let btns = `<button data-pg="prev"${custPage === 1 ? ' disabled' : ''}>‹</button>`;
+    for (let i = from; i <= to; i++) btns += `<button data-pg="${i}"${i === custPage ? ' class="on"' : ''}>${i}</button>`;
+    btns += `<button data-pg="next"${custPage === pages ? ' disabled' : ''}>›</button>`;
+    p.style.display = 'flex';
+    p.innerHTML = `<span class="pg-info">共 ${total} 家</span><span class="pg-btns">${btns}</span>`;
+    p.querySelectorAll('button[data-pg]').forEach(b => {
+      b.onclick = () => {
+        const v = b.dataset.pg;
+        custPage = v === 'prev' ? custPage - 1 : v === 'next' ? custPage + 1 : Number(v);
+        renderList();
+      };
+    });
+  }
   function renderList() {
-    if (viewLevel < 2) { renderRegionList(); return; }
+    if (viewLevel < 2) { $id('custPager').style.display = 'none'; renderRegionList(); return; }
     const list = $id('custList'); list.innerHTML = '';
-    const shown = customers.filter(c => activeFilters.has(c.status) && (!searchKw || c.name.includes(searchKw)));
+    const shown = shownCustomers();
     $id('poolCount').textContent = `（${shown.length}/${customers.length}）`;
-    shown.forEach(c => {
+    const per = custPerPage();
+    const pages = Math.max(1, Math.ceil(shown.length / per));
+    custPage = Math.min(Math.max(1, custPage), pages);
+    const start = (custPage - 1) * per;
+    shown.slice(start, start + per).forEach(c => {
       const el = document.createElement('div');
       el.className = 'cust' + (selected && selected.id === c.id ? ' sel' : '');
       el.innerHTML = `<div class="name">${c.name}<span class="badge" style="background:${STATUS[c.status].color}">${STATUS[c.status].name}</span></div><div class="meta"><span>${c.type}${c.load ? ' · ' + c.load.toLocaleString() + ' m³/日' : ''}</span><span>走访 ${c.last}</span></div>`;
-      el.onclick = () => { selected = c; showAnalysis(c); renderList(); draw(); };
+      el.onclick = () => { selected = c; renderList(); draw(); };
       list.appendChild(el);
     });
+    renderPager(shown.length, pages);
   }
   function renderRegionList() {
     const list = $id('custList'); list.innerHTML = '';
@@ -11086,7 +11064,7 @@ init();
       const rate = s.total ? Math.round(s.signed / s.total * 100) : 0;
       const el = document.createElement('div');
       el.className = 'cust';
-      el.innerHTML = `<div class="name">${r.name}<span class="badge" style="background:${regionFill(s)}">转化率 ${rate}%</span></div><div class="meta"><span>客户 ${s.total} · 签约 ${s.signed} · 意向 ${s.follow}</span><span>${s.load ? s.load.toLocaleString() + ' m³/日' : ''}</span></div>`;
+      el.innerHTML = `<div class="name">${r.name}<span class="badge" style="background:${regionFill(s)};color:${regionText(s)}">转化率 ${rate}%</span></div><div class="meta"><span>客户 ${s.total} · 签约 ${s.signed} · 意向 ${s.follow}</span><span>${s.load ? s.load.toLocaleString() + ' m³/日' : ''}</span></div>`;
       el.onclick = () => { viewLevel === 0 ? goProvince(r) : goCity(r); };
       list.appendChild(el);
     });
@@ -11095,20 +11073,66 @@ init();
   /* ================= 看板与进展 ================= */
   function renderStats() {
     const s = currentSummary();
-    const counts = { tovisit: s.tovisit, follow: s.follow, signed: s.signed, building: s.building, stalled: s.stalled, nointent: s.nointent };
-    const box = $id('stats'); box.innerHTML = '';
-    Object.entries(STATUS).forEach(([k, v]) => {
-      const el = document.createElement('div');
-      el.className = 'stat';
-      el.innerHTML = `<span class="dot" style="background:${v.color}"></span>${v.name} <b>${counts[k]}</b>`;
-      box.appendChild(el);
-    });
+    const counts = {}; Object.keys(STATUS).forEach(k => counts[k] = s[k] || 0);
     dropList.querySelectorAll('input[data-status]').forEach(cb => { cb.closest('.drop-item').querySelector('.cnt').textContent = counts[cb.dataset.status]; });
   }
 
+  /* ================= 侧边栏：收起 / 展开 / 拖拽调宽 ================= */
+  const SIDE_DEF = 288, SIDE_MIN = 220, SIDE_MAX = 520, SIDE_SNAP = 170;
+  let sideW = SIDE_DEF, sideCollapsed = false, sideDrag = null, sideRaf = 0;
+  const sideEl = () => document.querySelector('.cdmap .side');
+  const sideTrans = 'flex-basis .22s ease, width .22s ease';
+  function sideApply(animate) {
+    const el = sideEl(); if (!el) return;
+    el.style.transition = animate ? sideTrans : 'none';
+    if (sideCollapsed) { el.style.width = ''; el.style.flexBasis = ''; el.classList.add('collapsed'); }
+    else { el.classList.remove('collapsed'); el.style.width = sideW + 'px'; el.style.flexBasis = sideW + 'px'; }
+    const arrow = $id('sideArrow');
+    if (arrow) arrow.textContent = sideCollapsed ? '›' : '‹';
+    cancelAnimationFrame(sideRaf);
+    if (!animate) { fitCanvas(); return; }
+    const t0 = performance.now();
+    const step = () => {
+      fitCanvas();
+      if (performance.now() - t0 < 260) sideRaf = requestAnimationFrame(step);
+      else { el.style.transition = ''; renderList(); }
+    };
+    sideRaf = requestAnimationFrame(step);
+  }
+  (function bindSideHandle() {
+    const h = $id('sideHandle');
+    if (!h) return;
+    let moved = false;
+    h.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      const el = sideEl();
+      sideDrag = { x: e.clientX, w: sideCollapsed ? 0 : el.offsetWidth };
+      moved = false;
+      el.style.transition = 'none';
+    });
+    window.addEventListener('mousemove', e => {
+      if (!sideDrag) return;
+      const dx = e.clientX - sideDrag.x;
+      if (Math.abs(dx) > 3) moved = true;
+      if (!moved) return;
+      const w = sideDrag.w + dx;
+      if (w < SIDE_SNAP) sideCollapsed = true;
+      else { sideCollapsed = false; sideW = Math.min(SIDE_MAX, Math.max(SIDE_MIN, w)); }
+      sideApply(false);
+    });
+    window.addEventListener('mouseup', () => {
+      if (!sideDrag) return;
+      sideDrag = null;
+      const el = sideEl();
+      if (!moved) { sideCollapsed = !sideCollapsed; sideApply(true); }
+      else { el.style.transition = sideTrans; fitCanvas(); renderList(); }
+    });
+  })();
+
   /* ================= 启动 ================= */
   function initMap() {
-    renderFilters(); syncUI(); renderCrumb(); renderStats(); renderList(); resize();
+    renderFilters(); syncUI(); renderStats(); renderList(); resize();
     showZoomHint('滚轮或点击可缩放切换：全国 → 省 → 市');
     ensureChinaGeo();
   }
