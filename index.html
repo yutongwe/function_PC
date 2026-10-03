@@ -1764,6 +1764,8 @@ table { border-collapse: collapse; width: 100%; }
 .cdmap .side.collapsed { width:0; flex-basis:0; border-right:none; overflow:hidden; }
 .cdmap .side-head { padding:12px 14px 8px; border-bottom:1px solid var(--line); }
 .cdmap .side-head h2 { font-size:14px; font-weight:600; margin-bottom:8px; }
+.cdmap .pool-sum { display:none; gap:14px; font-size:11.5px; color:var(--muted); margin:-2px 0 8px; }
+.cdmap .pool-sum b { color:#2b3a42; font-weight:600; }
 .cdmap .filter-drop { position:relative; margin-top:8px; }
 .cdmap .drop-trigger { width:100%; display:flex; align-items:center; justify-content:space-between; gap:6px; padding:6px 10px; border:1px solid var(--line); border-radius:7px; background:#fff; font-size:12px; cursor:pointer; color:#2b3a42; font-family:inherit; }
 .cdmap .drop-trigger:hover { border-color:var(--brand); }
@@ -1790,6 +1792,7 @@ table { border-collapse: collapse; width: 100%; }
 .cdmap .cust:hover { background:#F0F6FF; }
 .cdmap .cust.sel { background:#EAF2FF; border-left:3px solid var(--brand); padding-left:11px; }
 .cdmap .cust .name { font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px; }
+.cdmap .cust .name .load { margin-left:auto; font-size:11px; font-weight:400; color:var(--muted); white-space:nowrap; }
 .cdmap .cust .meta { font-size:11px; color:var(--muted); margin-top:3px; display:flex; justify-content:space-between; }
 .cdmap .badge { font-size:10px; padding:1px 7px; border-radius:9px; color:#fff; font-weight:600; }
 .cdmap .cust-pager { flex:0 0 38px; height:38px; box-sizing:border-box; display:none; align-items:center; justify-content:space-between; gap:8px; padding:0 12px; border-top:1px solid var(--line); background:var(--panel); }
@@ -2534,6 +2537,7 @@ table { border-collapse: collapse; width: 100%; }
                 <aside class="side">
                   <div class="side-head">
                     <h2><span id="poolTitle">客户池</span> <span id="poolCount" style="color:var(--muted);font-weight:400;font-size:12px"></span></h2>
+                    <div class="pool-sum" id="poolSum"></div>
                     <div class="filter-drop" id="filterDrop">
                       <button type="button" class="drop-trigger" id="dropTrigger">
                         <span id="dropLabel">全部状态</span>
@@ -9582,8 +9586,8 @@ init();
 (function () {
   'use strict';
   /* ---------- 统一状态色（蓝绿主题） ---------- */
-  const SCOLOR = { '待走访': '#3D8BFF', '意向跟进中': '#FF9F43', '已推送报装': '#3CD278', '停滞': '#F5483B', '不用气': '#9AA5B5' };
-  const statusList = ['待走访', '意向跟进中', '已推送报装', '停滞', '不用气'];
+  const SCOLOR = { '待走访': '#3D8BFF', '意向跟进中': '#FF9F43', '已推送报装': '#3CD278', '停滞': '#F5483B', '无意向': '#9AA5B5' };
+  const statusList = ['待走访', '意向跟进中', '已推送报装', '停滞', '无意向'];
   const stageList = ['意向跟进中', '签约报装'];
   const intentTag = i => ({ '高': 'background:#FDECEC;color:#F5483B', '中': 'background:#FFF3E2;color:#FF9F43', '低': 'background:#E6F9FB;color:#2FB8CC', '无': 'background:#F0F2F7;color:#9AA5B5' })[i] || '';
   const statusTag = s => `background:${SCOLOR[s]}1a;color:${SCOLOR[s]}`;
@@ -9647,7 +9651,7 @@ init();
     mk('淄博华泰纺织印染', '工业', '天眼查', '服装纺织', '周村区', '意向跟进中', '高', '1000-3000方/日', '意向跟进中', '明年及以后', 420, 380, '2026-07-15', '2026-12-31', '王开发', 1.2),
     mk('桓台鑫源玻璃纤维', '工业', '环评安评', '非金属', '桓台县', '意向跟进中', '中', '≥3000方/日', '意向跟进中', '本年内', 500, 460, '2026-07-22', null, '赵跟进', 0.7),
     mk('临淄新源造纸厂', '工业', '政府名单', '造纸', '临淄区', '停滞', '中', '1000-3000方/日', '意向跟进中', '已建成', 750, 180, '2026-05-11', '2026-07-01', '赵跟进', 0.6),
-    mk('川香居火锅店', '商服', '扫街新增', null, '张店区', '不用气', '无', null, '接触', '-', 260, 420, '2026-07-30', null, '李扫街', 0.5),
+    mk('川香居火锅店', '商服', '扫街新增', null, '张店区', '无意向', '无', null, '接触', '-', 260, 420, '2026-07-30', null, '李扫街', 0.5),
     mk('淄博康泰医药包装', '工业', '天眼查', '医药', '高新区', '意向跟进中', '高', '1000-3000方/日', '意向跟进中', '已建成', 560, 260, '2026-08-02', '2026-07-20', '王开发', 0.3),
     mk('博山琉璃工艺厂', '工业', '天眼查', '非金属', '博山区', '待走访', null, null, '接触', '-', 180, 480, null, null, '李扫街', 2.1),
     mk('味美鲜食品加工厂', '工业', '环评安评', '食品制造', '淄川区', '意向跟进中', '中', '<1000方/日', '意向跟进中', '已建成', 380, 90, '2026-07-29', '2026-11-30', '赵跟进', 0.9),
@@ -10108,7 +10112,7 @@ init();
     const c = custByName(v.customer);
     diffs.forEach(([f0, o, n]) => audits.unshift({ id: ++aId, cid: c ? c.id : 0, t: now, u: '王开发(PC)', f: f0, o: String(o).slice(0, 40), n: String(n).slice(0, 40) }));
     if (c) {
-      if (v.intent !== c.intent) { c.intent = v.intent; if (v.intent === '无') c.status = '不用气'; }
+      if (v.intent !== c.intent) { c.intent = v.intent; if (v.intent === '无') c.status = '无意向'; }
       if (c.status === '停滞' && (v.intent === '高' || v.intent === '中' || v.intent === '低')) { audits.unshift({ id: ++aId, cid: c.id, t: now, u: '王开发(PC)', f: '客户状态', o: '停滞', n: '意向跟进中（走访复活）' }); c.status = '意向跟进中'; }
       if (v.scale) c.scale = v.scale;
       c.lastVisit = v.date.slice(0, 10);
@@ -10149,14 +10153,14 @@ init();
         <td>${c.type === '商服' ? '<span class="cd-muted">—</span>' : isUC(c) ? `<span class="cd-tag" style="background:#F3EEFE;color:#7C5CFF">🏗️ ${c.builtTime}</span>` : '<span class="cd-muted">已建成</span>'}</td>
         <td><span class="cd-tag" style="background:#F3EEFE;color:#7C5CFF">${c.stage}</span></td>
         <td class="cd-muted">${c.lastVisit}</td>
-        <td>${inPlan ? '<span class="cd-tag" style="background:#E8F9F0;color:#1FA96B">已在计划</span>' : `<a class="cd-link" onclick="cdAddToPlan(${c.id})">纳入开发计划</a>`}<a class="cd-link red" onclick="cdQuitIntent(${c.id})">不用气</a></td></tr>`;
+        <td>${inPlan ? '<span class="cd-tag" style="background:#E8F9F0;color:#1FA96B">已在计划</span>' : `<a class="cd-link" onclick="cdAddToPlan(${c.id})">纳入开发计划</a>`}<a class="cd-link red" onclick="cdQuitIntent(${c.id})">无意向</a></td></tr>`;
     });
     if (!rows.length) h += `<tr><td colspan="8" style="text-align:center;color:var(--text-tertiary);padding:26px">暂无匹配客户</td></tr>`;
     document.getElementById('cdIntentTable').innerHTML = h + '</tbody>';
   }
   window.cdSetIntentFilter = function (k, v) { F.intent[k] = v; renderIntent(); };
   window.cdAddToPlan = function (id) { const c = customers.find(x => x.id === id); if (c && !c.deadline) { c.deadline = '2026-12-31'; c.owner = '王开发'; toast('已纳入 2026 年度开发计划，默认节点 2026-12-31，请在计划页调整', 'success'); renderIntent(); renderPlan(); } };
-  window.cdQuitIntent = function (id) { const c = customers.find(x => x.id === id); c.status = '不用气'; c.intent = '无'; delete c.deadline; toast('已标记不用气并退回客户池', 'info'); renderIntent(); renderPool(); renderPlan(); };
+  window.cdQuitIntent = function (id) { const c = customers.find(x => x.id === id); c.status = '无意向'; c.intent = '无'; delete c.deadline; toast('已标记无意向并退回客户池', 'info'); renderIntent(); renderPool(); renderPlan(); };
 
   /* ================= 开发计划 ================= */
   function buildPlanFilters() {
@@ -10289,20 +10293,18 @@ init();
   const $id = (id) => document.getElementById(id);
 
   /* ================= 数据 ================= */
-  /* 状态配色规范 —— 每个状态成对定义三种色，保证任何底色上的文字都可读：
-       color = 图钉 / 标签的底色
-       text  = 写在 color 上的字色（浅底配深字，深底配白字）
-       ink   = 把该状态当"文字"用在白底 / 浅底时的深色版
-     对比度按 WCAG 公式核算：底上字色最低 4.35、浅底字色最低 4.42，
-     远优于原先"所有状态统一用白字"（最低仅 1.97）。改色时请同步复核这三项。 */
+  /* 状态配色规范 —— 每个状态成对定义两种色：
+       color = 图钉 / 状态标签的底色（标签文字统一用白色，由 .cdmap .badge 提供）
+       ink   = 把该状态当"文字"用在白底 / 浅底时的深色版（图钉被选中时的名称标签用它）
+     改色时请同步复核这两项。 */
   const STATUS = {
-    tovisit:  { name: '待走访',      color: '#3D8BFF', text: '#06204A', ink: '#1B5FC1', desc: '新入池、还没上过门的客户' },
-    follow:   { name: '意向跟进中',  color: '#FF9F43', text: '#6B2E00', ink: '#B35A00', desc: '首访后判断有意向，正在重点跟进' },
-    signed:   { name: '已推送报装',  color: '#3CD278', text: '#0B4A28', ink: '#147A44', desc: '已进入报装流程' },
-    opened:   { name: '已签约',      color: '#0E8A4A', text: '#ffffff', ink: '#0E8A4A', desc: '已开户的客户' },
-    building: { name: '在建',        color: '#7C5CFF', text: '#ffffff', ink: '#5B3BD0', desc: '厂房还在建设的客户' },
-    stalled:  { name: '停滞',        color: '#F5483B', text: '#4A0B06', ink: '#C02015', desc: '长期未走访/跟进中断' },
-    nointent: { name: '不用气',      color: '#9AA5B5', text: '#2F3A44', ink: '#5A6773', desc: '不能开发，标记后不再投入精力' },
+    tovisit:  { name: '待走访',      color: '#3D8BFF', ink: '#1B5FC1', desc: '新入池、还没上过门的客户' },
+    follow:   { name: '意向跟进中',  color: '#FF9F43', ink: '#B35A00', desc: '首访后判断有意向，正在重点跟进' },
+    signed:   { name: '已推送报装',  color: '#3CD278', ink: '#147A44', desc: '已进入报装流程' },
+    opened:   { name: '已签约',      color: '#0E8A4A', ink: '#0E8A4A', desc: '已开户的客户' },
+    building: { name: '在建',        color: '#7C5CFF', ink: '#5B3BD0', desc: '厂房还在建设的客户' },
+    stalled:  { name: '停滞',        color: '#F5483B', ink: '#C02015', desc: '长期未走访/跟进中断' },
+    nointent: { name: '无意向',      color: '#9AA5B5', ink: '#5A6773', desc: '暂无用气意向' },
   };
 
   const customers = [
@@ -10569,12 +10571,13 @@ init();
     return shenzhenSummary();
   }
   function regionSize() { return viewLevel === 0 ? { w: .17, h: .13 } : { w: .19, h: .14 }; }
-  /* 区域开发进度（转化率）—— 单色相顺序色阶（青系），刻意与「客户状态」的分类色族区分开：
-     底色越深 = 签约转化率越高。状态色（蓝/橙/绿/紫/红/灰）只出现在点状图钉上，两者不共用色相。 */
+  /* 区域开发进度（转化率）—— 以系统主色 #3D8BFF 为基准的单色相顺序色阶（同色相 216°，只改明度）：
+     <25% 浅 / 25%~50% 主色本身 / ≥50% 深，底色越深 = 签约转化率越高。
+     只在 全国 / 省级 视图作为区域底色出现；市级视图的图钉用 STATUS 的分类色，两者不同屏。 */
   const REGION_RAMP = [
-    { min: .5,  fill: '#0A6076', text: '#ffffff' },  // ≥50%     开发成熟
-    { min: .25, fill: '#3E97A8', text: '#ffffff' },  // 25%~50%  推进中
-    { min: 0,   fill: '#A9CDD6', text: '#2b3a42' },  // <25%     起步
+    { min: .5,  fill: '#0056D6', text: '#ffffff' },  // ≥50%     开发成熟
+    { min: .25, fill: '#3D8BFF', text: '#ffffff' },  // 25%~50%  推进中
+    { min: 0,   fill: '#A3C8FF', text: '#0B2C57' },  // <25%     起步
   ];
   function regionStyle(s) { const rate = s && s.total ? s.signed / s.total : 0; return REGION_RAMP.find(b => rate >= b.min); }
   function regionFill(s) { return regionStyle(s).fill; }
@@ -10722,7 +10725,7 @@ init();
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(r.name, x, y - h * 0.16);
     ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
-    ctx.fillText('客户 ' + s.total + ' · 签约 ' + s.signed, x, y + h * 0.14);
+    ctx.fillText('客户 ' + s.total + ' · 签约 ' + (s.opened || 0) + ' · 已推送报装 ' + (s.signed || 0), x, y + h * 0.14);
     if (s.load) ctx.fillText(s.load.toLocaleString() + ' m³/日', x, y + h * 0.34);
     ctx.restore();
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
@@ -10850,6 +10853,15 @@ init();
     btn.style.display = viewLevel === 0 ? 'none' : 'flex';
   }
   $id('mapBack').onclick = () => { if (viewLevel === 2) goProvince(currentProvince); else goCountry(); };
+  /* —— 侧栏汇总：全国 / 省级视图显示本级的客户、签约、已推送报装、意向数量 —— */
+  function renderPoolSum() {
+    const el = $id('poolSum');
+    if (!el) return;
+    if (viewLevel === 2) { el.style.display = 'none'; return; }
+    const s = currentSummary();
+    el.style.display = 'flex';
+    el.innerHTML = `<span>客户 <b>${s.total || 0}</b></span><span>签约 <b>${s.opened || 0}</b></span><span>已推送报装 <b>${s.signed || 0}</b></span><span>意向 <b>${s.follow || 0}</b></span>`;
+  }
   function syncUI() {
     const detail = viewLevel === 2;
     document.querySelector('#page-marketDev .toolbar').style.display = detail ? '' : 'none';
@@ -10858,6 +10870,7 @@ init();
     $id('poolTitle').textContent = detail ? '客户池' : (viewLevel === 0 ? '全国各省' : currentProvince.name + '各市');
     renderLegend();
     renderBack();
+    renderPoolSum();
   }
   let hintTimer = null;
   function showZoomHint(text) { const h = $id('zoomHint'); h.textContent = text; h.classList.add('show'); clearTimeout(hintTimer); hintTimer = setTimeout(() => h.classList.remove('show'), 1600); }
@@ -10929,7 +10942,7 @@ init();
         const keyHtml = (viewLevel < 2 && reg.keyCustomers) ? `<div class="p-key">在开发代表客户</div>` + reg.keyCustomers.map(k => `<div class="p-cust"><span class="kdot" style="background:${STATUS[k.status].color}"></span>${k.name}<span class="kst">${STATUS[k.status].name}</span></div>`).join('') : '';
         popup.style.display = 'block';
         popup.style.left = px + 'px'; popup.style.top = py + 'px';
-        popup.innerHTML = `<div class="p-name">${reg.name}</div><div class="p-row">客户 ${s.total} · 签约 ${s.signed} · 意向 ${s.follow}${s.load ? ' · ' + s.load.toLocaleString() + ' m³/日' : ''}</div>${keyHtml}<div class="p-row" style="margin-top:4px;color:var(--brand)">点击/滚轮进入 →</div>`;
+        popup.innerHTML = `<div class="p-name">${reg.name}</div><div class="p-row">客户 ${s.total} · 签约 ${s.opened || 0} · 已推送报装 ${s.signed} · 意向 ${s.follow}${s.load ? ' · ' + s.load.toLocaleString() + ' m³/日' : ''}</div>${keyHtml}<div class="p-row" style="margin-top:4px;color:var(--brand)">点击/滚轮进入 →</div>`;
         if (prev !== reg) draw();
       } else { popup.style.display = 'none'; if (prev) draw(); }
       return;
@@ -11068,7 +11081,7 @@ init();
     shown.slice(start, start + per).forEach(c => {
       const el = document.createElement('div');
       el.className = 'cust' + (selected && selected.id === c.id ? ' sel' : '');
-      el.innerHTML = `<div class="name">${c.name}<span class="badge" style="background:${STATUS[c.status].color};color:${STATUS[c.status].text}">${STATUS[c.status].name}</span></div><div class="meta"><span>${c.type}${c.load ? ' · ' + c.load.toLocaleString() + ' m³/日' : ''}</span><span>走访 ${c.last}</span></div>`;
+      el.innerHTML = `<div class="name">${c.name}<span class="badge" style="background:${STATUS[c.status].color}">${STATUS[c.status].name}</span></div><div class="meta"><span>${c.type}${c.load ? ' · ' + c.load.toLocaleString() + ' m³/日' : ''}</span><span>走访 ${c.last}</span></div>`;
       el.onclick = () => { selected = c; renderList(); draw(); };
       list.appendChild(el);
     });
@@ -11083,7 +11096,7 @@ init();
       const rate = s.total ? Math.round(s.signed / s.total * 100) : 0;
       const el = document.createElement('div');
       el.className = 'cust';
-      el.innerHTML = `<div class="name">${r.name}<span class="badge" style="background:${regionFill(s)};color:${regionText(s)}">转化率 ${rate}%</span></div><div class="meta"><span>客户 ${s.total} · 签约 ${s.signed} · 意向 ${s.follow}</span><span>${s.load ? s.load.toLocaleString() + ' m³/日' : ''}</span></div>`;
+      el.innerHTML = `<div class="name">${r.name}<span class="badge" style="background:${regionFill(s)};color:${regionText(s)}">转化率 ${rate}%</span>${s.load ? `<span class="load">${s.load.toLocaleString()} m³/日</span>` : ''}</div><div class="meta"><span>客户 ${s.total} · 签约 ${s.opened || 0} · 已推送报装 ${s.signed} · 意向 ${s.follow}</span></div>`;
       el.onclick = () => { viewLevel === 0 ? goProvince(r) : goCity(r); };
       list.appendChild(el);
     });
