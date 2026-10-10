@@ -1767,9 +1767,12 @@ table { border-collapse: collapse; width: 100%; }
 .cdmap .pool-sum { display:none; gap:14px; font-size:11.5px; color:var(--muted); margin:-2px 0 8px; }
 .cdmap .pool-sum b { color:#2b3a42; font-weight:600; }
 /* 项目公司切换器（仅市级视图显示）：一个市下辖多个项目公司，可切换查看各自客户池与管网 */
-.cdmap .pc-switch { display:none; flex-direction:column; gap:6px; margin:0 0 10px; }
+.cdmap .pc-switch { display:none; flex-direction:column; gap:6px; margin:0 0 8px; }
+.cdmap .pc-drop-wrap { display:none; flex-direction:column; margin:0 0 8px; }
 .cdmap .pc-switch .pc-label { font-size:11px; color:var(--muted); }
 .cdmap .pc-switch .pc-label b { color:#2b3a42; font-weight:600; }
+.cdmap .pc-rate { display:inline-block; margin-left:8px; padding:1px 7px; border-radius:9px; background:#3D8BFF; color:#fff; font-size:10.5px; font-weight:600; vertical-align:1px; white-space:nowrap; }
+.cdmap .side-head h2 .pc-rate { font-weight:600; }
 .cdmap .pc-drop { position:relative; }
 .cdmap .pc-trigger { width:100%; display:flex; align-items:center; justify-content:space-between; gap:6px; padding:7px 10px; border:1px solid var(--line); border-radius:7px; background:#fff; font-size:12.5px; cursor:pointer; color:#2b3a42; font-family:inherit; font-weight:600; }
 .cdmap .pc-trigger:hover { border-color:var(--brand); }
@@ -1811,6 +1814,7 @@ table { border-collapse: collapse; width: 100%; }
 .cdmap .cust:hover { background:#F0F6FF; }
 .cdmap .cust.sel { background:#EAF2FF; border-left:3px solid var(--brand); padding-left:11px; }
 .cdmap .cust .name { font-size:13px; font-weight:600; display:flex; align-items:center; gap:6px; }
+.cdmap .cust .name .plan-ico { width:13px; height:13px; flex:0 0 auto; color:#0E8A4A; }
 .cdmap .cust .name .load { margin-left:auto; font-size:11px; font-weight:400; color:var(--muted); white-space:nowrap; }
 .cdmap .cust .meta { font-size:11px; color:var(--muted); margin-top:3px; display:flex; justify-content:space-between; }
 .cdmap .badge { font-size:10px; padding:1px 7px; border-radius:9px; color:#fff; font-weight:600; }
@@ -2561,8 +2565,9 @@ table { border-collapse: collapse; width: 100%; }
               <div class="main">
                 <aside class="side">
                   <div class="side-head">
-                    <h2><span id="poolTitle">客户池</span> <span id="poolCount" style="color:var(--muted);font-weight:400;font-size:12px"></span></h2>
                     <div class="pc-switch" id="pcSwitch"></div>
+                    <h2><span id="poolTitle">客户池</span> <span id="poolCount" style="color:var(--muted);font-weight:400;font-size:12px"></span><span class="pc-rate" id="pcRateInline" style="display:none"></span></h2>
+                    <div class="pc-drop-wrap" id="pcDropWrap"></div>
                     <div class="pool-sum" id="poolSum"></div>
                     <div class="filter-drop" id="filterDrop">
                       <button type="button" class="drop-trigger" id="dropTrigger">
@@ -11524,7 +11529,6 @@ init();
     ctx.fillText(r.name, x, y - h * 0.16);
     ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillText('客户 ' + s.total + ' · 已开发 ' + (s.developed || 0) + ' · 意向 ' + (s.follow || 0), x, y + h * 0.14);
-    if (s.load) ctx.fillText(s.load.toLocaleString() + ' m³/日', x, y + h * 0.34);
     ctx.restore();
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
   }
@@ -11660,29 +11664,61 @@ init();
     el.style.display = 'flex';
     el.innerHTML = `<span>客户 <b>${s.total || 0}</b></span><span>已开发 <b>${s.developed || 0}</b></span><span>意向 <b>${s.follow || 0}</b></span>`;
   }
-  /* —— 项目公司切换器：市级视图显示该市下辖的项目公司（下拉选择），切换后重载客户池与管网 —— */
+  /* —— 项目公司切换器：市级视图显示该市下辖的项目公司（下拉选择），切换后重载客户池与管网 ——
+     布局：①「项目公司 {市名}」标签行（#pcSwitch，在标题之上） / ② 标题行「{项目公司}客户池」+ 年度开发计划完成率（#pcRateInline） / ③ 下拉框（#pcDropWrap，在标题之下） */
   function renderPCSwitch() {
     const el = $id('pcSwitch');
+    const wrap = $id('pcDropWrap');
+    const rateEl = $id('pcRateInline');
     if (!el) return;
-    if (viewLevel !== 2 || !currentCity) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    if (viewLevel !== 2 || !currentCity) {
+      el.style.display = 'none'; el.innerHTML = '';
+      if (rateEl) { rateEl.style.display = 'none'; rateEl.textContent = ''; }
+      if (wrap) { wrap.style.display = 'none'; wrap.innerHTML = ''; }
+      return;
+    }
     const pcs = cityPCs(currentCity);
-    if (pcs.length <= 1) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    if (pcs.length <= 1) {
+      el.style.display = 'none'; el.innerHTML = '';
+      if (rateEl) { rateEl.style.display = 'none'; rateEl.textContent = ''; }
+      if (wrap) { wrap.style.display = 'none'; wrap.innerHTML = ''; }
+      return;
+    }
     el.style.display = 'flex';
     const cur = currentPC || pcs[0];
-    el.innerHTML = `<div class="pc-label">项目公司 <b>${currentCity.name}</b></div>`
-      + '<div class="pc-drop" id="pcDrop">'
-      + `<button type="button" class="pc-trigger" id="pcTrigger">`
-      + '<svg class="pc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>'
-      + `<span id="pcTrigLabel">${cur.name}</span><span class="pc-caret">▾</span></button>`
-      + '<div class="pc-panel" id="pcPanel">' + pcs.map(p =>
-        `<div class="pc-opt${cur.id === p.id ? ' on' : ''}" data-pc="${p.id}">`
-        + '<svg class="pc-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
-        + `<span>${p.name}</span></div>`
-      ).join('') + '</div></div>';
+    /* 年度开发计划完成率 = 项目公司「已开发」客户数 ÷ 该项目公司「纳入本年度开发计划」的客户数
+       （纳入口径：客户有负责人 owner，即已在开发计划页选定负责人） */
+    const curCs = cur.customers || [];
+    const planCs = curCs.filter(c => c.owner);
+    const devInPlan = planCs.filter(c => statusList(c).indexOf('developed') >= 0).length;
+    const pcRate = planCs.length ? Math.round(devInPlan / planCs.length * 100) : 0;
+    /* 第一行：项目公司（仅市名，位于标题上方） */
+    el.innerHTML = `<div class="pc-label">项目公司 <b>${currentCity.name}</b></div>`;
+    /* 第二行：标题行内的完成率徽标（跟在「{公司}客户池（n/m）」之后）
+       口径：已开发（其中）÷ 纳入本年度开发计划（owner 非空），鼠标悬停显示分子/分母 */
+    if (rateEl) {
+      rateEl.style.display = '';
+      rateEl.textContent = `年度开发计划完成率 ${pcRate}%`;
+      rateEl.title = `已开发 ${devInPlan} / 年度开发计划 ${planCs.length}`;
+    }
+    /* 第三行（标题下方）：项目公司下拉选择框 */
+    if (wrap) {
+      wrap.style.display = 'flex';
+      wrap.innerHTML = '<div class="pc-drop" id="pcDrop">'
+        + `<button type="button" class="pc-trigger" id="pcTrigger">`
+        + '<svg class="pc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>'
+        + `<span id="pcTrigLabel">${cur.name}</span><span class="pc-caret">▾</span></button>`
+        + '<div class="pc-panel" id="pcPanel">' + pcs.map(p =>
+          `<div class="pc-opt${cur.id === p.id ? ' on' : ''}" data-pc="${p.id}">`
+          + '<svg class="pc-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
+          + `<span>${p.name}</span></div>`
+        ).join('') + '</div></div>';
+    }
 
     const drop = $id('pcDrop'), trigger = $id('pcTrigger');
+    if (!drop || !trigger) return;
     trigger.onclick = (e) => { e.stopPropagation(); drop.classList.toggle('open'); };
-    el.querySelectorAll('.pc-opt').forEach(o => {
+    el.parentElement.querySelectorAll('.pc-opt').forEach(o => {
       o.onclick = (e) => { e.stopPropagation(); drop.classList.remove('open'); switchPC(o.dataset.pc); };
     });
   }
@@ -11783,7 +11819,7 @@ init();
         const keyHtml = (viewLevel < 2 && reg.keyCustomers) ? `<div class="p-key">在开发代表客户</div>` + reg.keyCustomers.map(k => `<div class="p-cust"><span class="kdot" style="background:${STATUS[primaryStatus(k)].color}"></span>${k.name}<span class="kst">${statusList(k).map(s => STATUS[s].name).join(' + ')}</span></div>`).join('') : '';
         popup.style.display = 'block';
         popup.style.left = px + 'px'; popup.style.top = py + 'px';
-        popup.innerHTML = `<div class="p-name">${reg.name}</div><div class="p-row">客户 ${s.total} · 已开发 ${s.developed || 0} · 意向 ${s.follow}${s.load ? ' · ' + s.load.toLocaleString() + ' m³/日' : ''}</div>${keyHtml}<div class="p-row" style="margin-top:4px;color:var(--brand)">点击/滚轮进入 →</div>`;
+        popup.innerHTML = `<div class="p-name">${reg.name}</div><div class="p-row">客户 ${s.total} · 已开发 ${s.developed || 0} · 意向 ${s.follow}</div>${keyHtml}<div class="p-row" style="margin-top:4px;color:var(--brand)">点击/滚轮进入 →</div>`;
         if (prev !== reg) draw();
       } else { popup.style.display = 'none'; if (prev) draw(); }
       return;
@@ -11925,7 +11961,11 @@ init();
       const el = document.createElement('div');
       el.className = 'cust' + (selected && selected.id === c.id ? ' sel' : '');
       const badges = statusList(c).map(k => `<span class="badge" style="background:${STATUS[k].color}">${STATUS[k].name}</span>`).join('');
-      el.innerHTML = `<div class="name">${c.name}${badges}</div><div class="meta"><span>${c.type}${c.load ? ' · ' + c.load.toLocaleString() + ' m³/日' : ''}</span><span>走访 ${c.last}</span></div>`;
+      /* 本年度开发计划客户标记：已纳入开发计划（有负责人）的客户，在名称前加一个小图标 */
+      const planMark = c.owner
+        ? `<svg class="plan-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" title="2026 年度开发计划客户"><title>2026 年度开发计划客户</title><path d="M8 2v4M16 2v4M3 10h18"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M9 16l2 2 4-4"/></svg>`
+        : '';
+      el.innerHTML = `<div class="name">${planMark}${c.name}${badges}</div><div class="meta"><span>${c.type}${c.load ? ' · ' + c.load.toLocaleString() + ' m³/日' : ''}</span><span>走访 ${c.last}</span></div>`;
       el.onclick = () => { selected = c; renderList(); draw(); };
       list.appendChild(el);
     });
@@ -11937,10 +11977,9 @@ init();
     $id('poolCount').textContent = `（${arr.length}）`;
     arr.forEach(r => {
       const s = viewLevel === 0 ? provinceSummary(r) : citySummary(r);
-      const rate = s.total ? Math.round(s.developed / s.total * 100) : 0;
       const el = document.createElement('div');
       el.className = 'cust';
-      el.innerHTML = `<div class="name">${r.name}<span class="badge" style="background:${regionFill(s)};color:${regionText(s)}">年度开发计划完成率 ${rate}%</span></div><div class="meta"><span>客户 ${s.total} · 已开发 ${s.developed || 0} · 意向 ${s.follow}</span></div>`;
+      el.innerHTML = `<div class="name">${r.name}</div><div class="meta"><span>客户 ${s.total} · 已开发 ${s.developed || 0} · 意向 ${s.follow}</span></div>`;
       el.onclick = () => { viewLevel === 0 ? goProvince(r) : goCity(r); };
       list.appendChild(el);
     });
