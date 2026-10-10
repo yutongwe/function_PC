@@ -9606,8 +9606,8 @@ init();
 (function () {
   'use strict';
   /* ---------- 统一状态色（蓝绿主题） ---------- */
-  const SCOLOR = { '待走访': '#3D8BFF', '意向跟进中': '#FF9F43', '已推送报装': '#3CD278', '停滞': '#F5483B', '无意向': '#9AA5B5' };
-  const statusList = ['待走访', '意向跟进中', '已推送报装', '停滞', '无意向'];
+  const SCOLOR = { '待走访': '#3D8BFF', '意向跟进中': '#FF9F43', '已开发': '#0E8A4A', '停滞': '#F5483B', '无意向': '#9AA5B5' };
+  const statusList = ['待走访', '意向跟进中', '已开发', '停滞', '无意向'];
   const stageList = ['意向跟进中', '签约报装'];
   const intentTag = i => ({ '高': 'background:#FDECEC;color:#F5483B', '中': 'background:#FFF3E2;color:#FF9F43', '低': 'background:#E6F9FB;color:#2FB8CC', '无': 'background:#F0F2F7;color:#9AA5B5' })[i] || '';
   const statusTag = s => `background:${SCOLOR[s]}1a;color:${SCOLOR[s]}`;
@@ -9666,7 +9666,7 @@ init();
     mk('淄博金晶陶瓷有限公司', '工业', '天眼查', '陶瓷', '张店区', '意向跟进中', '高', '≥3000方/日', '意向跟进中', '已建成', 150, 120, '2026-08-01', '2026-09-30', '王开发', 0.3),
     mk('鲁中玻璃制品厂', '工业', '政府名单', '玻璃', '淄川区', '意向跟进中', '中', '1000-3000方/日', '意向跟进中', '已建成', 330, 200, '2026-07-28', '2026-10-31', '李扫街', 0.8),
     mk('山东恒润机械科技', '工业', '天眼查', '机械', '高新区', '待走访', null, null, '接触', '-', 520, 150, null, null, '王开发', 0.2),
-    mk('齐翔化工材料公司', '工业', '环评安评', '化工', '临淄区', '已推送报装', '高', '≥3000方/日', '签约报装', '已建成', 680, 300, '2026-07-20', '2026-06-30', '赵跟进', 0.1),
+    mk('齐翔化工材料公司', '工业', '环评安评', '化工', '临淄区', '已开发', '高', '≥3000方/日', '签约报装', '已建成', 680, 300, '2026-07-20', '2026-06-30', '赵跟进', 0.1),
     mk('张店老王家常菜馆', '商服', '扫街新增', null, '张店区', '意向跟进中', '中', '<1000方/日', '意向跟进中', '-', 210, 320, '2026-08-03', '2026-08-31', '李扫街', 0.4),
     mk('淄博华泰纺织印染', '工业', '天眼查', '服装纺织', '周村区', '意向跟进中', '高', '1000-3000方/日', '意向跟进中', '明年及以后', 420, 380, '2026-07-15', '2026-12-31', '王开发', 1.2),
     mk('桓台鑫源玻璃纤维', '工业', '环评安评', '非金属', '桓台县', '意向跟进中', '中', '≥3000方/日', '意向跟进中', '本年内', 500, 460, '2026-07-22', null, '赵跟进', 0.7),
@@ -10209,7 +10209,7 @@ init();
         <td><input type="date" class="input" style="width:150px;padding:4px 8px" value="${p.deadline}" onchange="cdUpdPlan(${p.id},'deadline',this.value)"></td>
         <td style="min-width:190px"><div class="cd-steps" style="margin:0">${stageList.map((s, i) => `<div class="cd-step ${stageIdx(p.stage) > i ? 'done' : stageIdx(p.stage) === i ? 'cur' : ''}" data-i="${i + 1}" title="${s}"></div>`).join('')}</div><div class="cd-muted" style="text-align:center;margin-top:2px">${p.stage}</div></td>
         <td>${p.stage === '签约报装' ? '<span class="cd-muted">—</span>' : `<b style="color:${dCol}">${p.days < 0 ? '已逾期 ' + (-p.days) + ' 天' : '剩 ' + p.days + ' 天'}</b>`}</td>
-        <td><a class="cd-link" onclick="cdOpenTrack(${p.id})">跟进</a>${p.stage !== '签约报装' ? `<a class="cd-link green" onclick="cdPushInstall(${p.id})">推送报装</a>` : '<span class="cd-tag" style="background:#E8F9F0;color:#1FA96B">已推送报装</span>'}</td></tr>`;
+        <td><a class="cd-link" onclick="cdOpenTrack(${p.id})">跟进</a>${p.stage !== '签约报装' ? `<a class="cd-link green" onclick="cdPushInstall(${p.id})">推送报装</a>` : '<span class="cd-tag" style="background:#E8F9F0;color:#0E8A4A">已开发</span>'}</td></tr>`;
     });
     if (!list.length) h += `<tr><td colspan="7" style="text-align:center;color:var(--text-tertiary);padding:26px">该年度暂无计划客户，请到「意向管理」纳入重点客户</td></tr>`;
     document.getElementById('cdPlanTable').innerHTML = h + '</tbody>';
@@ -10225,9 +10225,9 @@ init();
   };
   window.cdPushInstall = function (id) {
     const c = customers.find(x => x.id === id); if (!c || c.stage === '签约报装') return;
-    const old = c.stage; c.stage = '签约报装'; c.status = '已推送报装';
+    const old = c.stage; c.stage = '签约报装'; c.status = '已开发';
     audits.unshift({ id: ++aId, cid: c.id, t: '2026-08-06 ' + new Date().toTimeString().slice(0, 5), u: '王开发', f: '开发阶段', o: old, n: '签约报装' });
-    toast('✅ 已推送报装：' + c.name + ' 阶段更新为「签约报装」', 'success'); renderPlan(); renderIntent(); renderPool();
+    toast('✅ 已推送报装：' + c.name + ' 阶段更新为「签约报装」，状态置为「已开发」', 'success'); renderPlan(); renderIntent(); renderPool();
   };
 
   /* ================= 字典管理 ================= */
@@ -10318,13 +10318,12 @@ init();
        ink   = 把该状态当"文字"用在白底 / 浅底时的深色版（图钉被选中时的名称标签用它）
      改色时请同步复核这两项。 */
   const STATUS = {
-    tovisit:  { name: '待走访',      color: '#3D8BFF', ink: '#1B5FC1', desc: '新入池、还没上过门的客户' },
-    follow:   { name: '意向跟进中',  color: '#FF9F43', ink: '#B35A00', desc: '首访后判断有意向，正在重点跟进' },
-    signed:   { name: '已推送报装',  color: '#3CD278', ink: '#147A44', desc: '已进入报装流程' },
-    opened:   { name: '已签约',      color: '#0E8A4A', ink: '#0E8A4A', desc: '已开户的客户' },
-    building: { name: '在建',        color: '#7C5CFF', ink: '#5B3BD0', desc: '厂房还在建设的客户' },
-    stalled:  { name: '停滞',        color: '#F5483B', ink: '#C02015', desc: '长期未走访/跟进中断' },
-    nointent: { name: '无意向',      color: '#9AA5B5', ink: '#5A6773', desc: '暂无用气意向' },
+    tovisit:   { name: '待走访',      color: '#3D8BFF', ink: '#1B5FC1', desc: '新入池、还没上过门的客户' },
+    follow:    { name: '意向跟进中',  color: '#FF9F43', ink: '#B35A00', desc: '首访后判断有意向，正在重点跟进' },
+    developed: { name: '已开发',      color: '#0E8A4A', ink: '#0E8A4A', desc: '已推送报装或已开户客户（合并口径）' },
+    building:  { name: '在建',        color: '#7C5CFF', ink: '#5B3BD0', desc: '厂房还在建设的客户' },
+    stalled:   { name: '停滞',        color: '#F5483B', ink: '#C02015', desc: '长期未走访/跟进中断' },
+    nointent:  { name: '无意向',      color: '#9AA5B5', ink: '#5A6773', desc: '暂无用气意向' },
   };
 
   /* —— 项目公司（市级视图的最下层管理单元：一个市下有多个项目公司，各自独立客户池与管网） —— */
@@ -10353,7 +10352,7 @@ init();
         customers: [
           { id: 1, name: '宏远五金制品厂', type: '工业', x: .13, y: .24, status: 'follow', last: '7-28', load: 800 },
           { id: 2, name: '鑫泰电子科技', type: '工业', x: .23, y: .66, status: 'tovisit', last: '—', load: 0 },
-          { id: 3, name: '悦湖酒店', type: '商业', x: .36, y: .41, status: 'signed', last: '7-25', load: 300 },
+          { id: 3, name: '悦湖酒店', type: '商业', x: .36, y: .41, status: 'developed', last: '7-25', load: 300 },
           { id: 4, name: '顺丰食品加工园', type: '工业', x: .47, y: .16, status: 'building', last: '7-30', load: 2000 },
           { id: 5, name: '老城商业街铺', type: '商业', x: .55, y: .54, status: 'stalled', last: '6-02', load: 0 },
           { id: 6, name: '恒信纺织厂', type: '工业', x: .65, y: .31, status: 'follow', last: '7-29', load: 1200 },
@@ -10363,7 +10362,7 @@ init();
           { id: 10, name: '西郊玻璃厂', type: '工业', x: .08, y: .49, status: 'stalled', last: '5-30', load: 0 },
           { id: 11, name: '绿源中央厨房', type: '商业', x: .40, y: .77, status: 'follow', last: '7-27', load: 500 },
           { id: 12, name: '华骏汽配产业园', type: '工业', x: .60, y: .84, status: 'building', last: '7-30', load: 3500 },
-          { id: 13, name: '望江宾馆', type: '商业', x: .30, y: .30, status: 'signed', last: '7-20', load: 180 },
+          { id: 13, name: '望江宾馆', type: '商业', x: .30, y: .30, status: 'developed', last: '7-20', load: 180 },
           { id: 14, name: '新星塑料厂', type: '工业', x: .78, y: .79, status: 'tovisit', last: '—', load: 0 },
           { id: 15, name: '富民农贸市场', type: '商业', x: .50, y: .36, status: 'tovisit', last: '—', load: 0 },
         ],
@@ -10378,7 +10377,7 @@ init();
         },
         customers: [
           { id: 301, name: '曲阜圣源酒业', type: '工业', x: .18, y: .30, status: 'follow', last: '7-26', load: 900 },
-          { id: 302, name: '尼山文旅酒店', type: '商业', x: .40, y: .52, status: 'signed', last: '7-22', load: 260 },
+          { id: 302, name: '尼山文旅酒店', type: '商业', x: .40, y: .52, status: 'developed', last: '7-22', load: 260 },
           { id: 303, name: '曲阜电缆厂', type: '工业', x: .66, y: .38, status: 'building', last: '7-30', load: 1800 },
           { id: 304, name: '鲁城机械加工', type: '工业', x: .80, y: .70, status: 'stalled', last: '5-24', load: 0 },
           { id: 305, name: '石门山食品厂', type: '工业', x: .30, y: .76, status: 'tovisit', last: '—', load: 0 },
@@ -10398,9 +10397,9 @@ init();
           planned: [[[.02, .30], [.14, .28], [.22, .34]], [[.84, .78], [.92, .86], [.96, .94]]],
         },
         customers: [
-          { id: 201, name: '华晟精密制造', type: '工业', x: .22, y: .28, status: 'signed', last: '7-29', load: 4200 },
+          { id: 201, name: '华晟精密制造', type: '工业', x: .22, y: .28, status: 'developed', last: '7-29', load: 4200 },
           { id: 202, name: '邹城煤矿机械厂', type: '工业', x: .48, y: .16, status: 'follow', last: '7-27', load: 1600 },
-          { id: 203, name: '孟子湖大酒店', type: '商业', x: .36, y: .60, status: 'signed', last: '7-24', load: 340 },
+          { id: 203, name: '孟子湖大酒店', type: '商业', x: .36, y: .60, status: 'developed', last: '7-24', load: 340 },
           { id: 204, name: '唐村食品加工', type: '工业', x: .66, y: .44, status: 'follow', last: '7-26', load: 780 },
           { id: 205, name: '兖矿东滩选煤', type: '工业', x: .80, y: .22, status: 'building', last: '7-31', load: 2600 },
           { id: 206, name: '太平镇玻璃厂', type: '工业', x: .86, y: .74, status: 'stalled', last: '5-28', load: 0 },
@@ -10441,7 +10440,7 @@ init();
           planned: [[[.02, .46], [.14, .44], [.24, .50]], [[.88, .44], [.94, .56], [.96, .70]]],
         },
         customers: [
-          { id: 111, name: '龙岗电子科技', type: '工业', x: .24, y: .34, status: 'signed', last: '7-24', load: 1800 },
+          { id: 111, name: '龙岗电子科技', type: '工业', x: .24, y: .34, status: 'developed', last: '7-24', load: 1800 },
           { id: 112, name: '大运软件小镇', type: '商业', x: .52, y: .52, status: 'follow', last: '7-28', load: 640 },
           { id: 113, name: '坂田华为配套', type: '工业', x: .72, y: .30, status: 'follow', last: '7-26', load: 2200 },
           { id: 114, name: '横岗眼镜城', type: '商业', x: .36, y: .72, status: 'tovisit', last: '—', load: 0 },
@@ -10458,7 +10457,7 @@ init();
           planned: [[[.02, .24], [.14, .22], [.24, .28]], [[.90, .60], [.96, .72], [.98, .84]]],
         },
         customers: [
-          { id: 121, name: '望江宾馆', type: '商业', x: .30, y: .30, status: 'signed', last: '7-20', load: 180 },
+          { id: 121, name: '望江宾馆', type: '商业', x: .30, y: .30, status: 'developed', last: '7-20', load: 180 },
           { id: 122, name: '深圳湾科技园', type: '商业', x: .56, y: .44, status: 'follow', last: '7-27', load: 1200 },
           { id: 123, name: '西丽大学城食堂', type: '公福', x: .22, y: .64, status: 'tovisit', last: '—', load: 0 },
           { id: 124, name: '前海金融中心', type: '商业', x: .70, y: .62, status: 'building', last: '7-31', load: 2100 },
@@ -10477,7 +10476,7 @@ init();
           planned: [[[.02, .52], [.14, .50], [.24, .56]], [[.88, .30], [.94, .44], [.96, .60]]],
         },
         customers: [
-          { id: 131, name: '广州汽车零部件', type: '工业', x: .22, y: .30, status: 'signed', last: '7-24', load: 2600 },
+          { id: 131, name: '广州汽车零部件', type: '工业', x: .22, y: .30, status: 'developed', last: '7-24', load: 2600 },
           { id: 132, name: '珠江新城商务楼', type: '商业', x: .54, y: .46, status: 'follow', last: '7-28', load: 1400 },
           { id: 133, name: '天河软件园', type: '商业', x: .74, y: .34, status: 'building', last: '7-31', load: 1900 },
           { id: 134, name: '石牌餐饮街', type: '商业', x: .38, y: .72, status: 'tovisit', last: '—', load: 0 },
@@ -10493,7 +10492,7 @@ init();
           planned: [[[.02, .48], [.14, .46], [.24, .52]], [[.88, .48], [.94, .60], [.96, .74]]],
         },
         customers: [
-          { id: 141, name: '番禺食品加工', type: '工业', x: .26, y: .32, status: 'signed', last: '7-23', load: 1600 },
+          { id: 141, name: '番禺食品加工', type: '工业', x: .26, y: .32, status: 'developed', last: '7-23', load: 1600 },
           { id: 142, name: '大学城商业中心', type: '商业', x: .54, y: .48, status: 'follow', last: '7-27', load: 900 },
           { id: 143, name: '南站商务区酒店', type: '商业', x: .74, y: .36, status: 'building', last: '7-30', load: 1300 },
           { id: 144, name: '大石机械配件厂', type: '工业', x: .40, y: .74, status: 'tovisit', last: '—', load: 0 },
@@ -10511,7 +10510,7 @@ init();
           { id: 151, name: '黄埔化工', type: '工业', x: .24, y: .34, status: 'follow', last: '7-26', load: 3200 },
           { id: 152, name: '科学城生物医药', type: '工业', x: .56, y: .44, status: 'building', last: '7-31', load: 2400 },
           { id: 153, name: '长洲岛物流仓储', type: '工业', x: .34, y: .72, status: 'tovisit', last: '—', load: 0 },
-          { id: 154, name: '大沙地商业广场', type: '商业', x: .76, y: .60, status: 'signed', last: '7-22', load: 720 },
+          { id: 154, name: '大沙地商业广场', type: '商业', x: .76, y: .60, status: 'developed', last: '7-22', load: 720 },
           { id: 155, name: '云埔工业区食堂', type: '公福', x: .84, y: .28, status: 'tovisit', last: '—', load: 0 },
         ],
       },
@@ -10529,7 +10528,7 @@ init();
           { id: 161, name: '松山湖精密制造', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 2800 },
           { id: 162, name: '华为松研所配套', type: '工业', x: .56, y: .46, status: 'follow', last: '7-28', load: 3600 },
           { id: 163, name: '大岭山家具厂', type: '工业', x: .36, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 164, name: '寮步汽车城', type: '商业', x: .78, y: .58, status: 'signed', last: '7-24', load: 860 },
+          { id: 164, name: '寮步汽车城', type: '商业', x: .78, y: .58, status: 'developed', last: '7-24', load: 860 },
           { id: 165, name: '大朗毛织产业园', type: '工业', x: .84, y: .30, status: 'stalled', last: '5-20', load: 0 },
           { id: 166, name: '生态园食堂', type: '公福', x: .16, y: .62, status: 'tovisit', last: '—', load: 0 },
         ],
@@ -10542,7 +10541,7 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .46], [.94, .58], [.96, .72]]],
         },
         customers: [
-          { id: 171, name: '虎门服装加工厂', type: '工业', x: .28, y: .34, status: 'signed', last: '7-22', load: 1500 },
+          { id: 171, name: '虎门服装加工厂', type: '工业', x: .28, y: .34, status: 'developed', last: '7-22', load: 1500 },
           { id: 172, name: '黄河时装城', type: '商业', x: .54, y: .50, status: 'follow', last: '7-27', load: 980 },
           { id: 173, name: '虎门电商产业园', type: '商业', x: .72, y: .36, status: 'building', last: '7-31', load: 1700 },
           { id: 174, name: '威远码头仓储', type: '工业', x: .38, y: .76, status: 'tovisit', last: '—', load: 0 },
@@ -10576,7 +10575,7 @@ init();
         },
         customers: [
           { id: 191, name: '顺德家电制造', type: '工业', x: .26, y: .34, status: 'follow', last: '7-27', load: 2400 },
-          { id: 192, name: '美的工业园食堂', type: '公福', x: .56, y: .48, status: 'signed', last: '7-21', load: 1100 },
+          { id: 192, name: '美的工业园食堂', type: '公福', x: .56, y: .48, status: 'developed', last: '7-21', load: 1100 },
           { id: 193, name: '北滘家电配套', type: '工业', x: .74, y: .34, status: 'building', last: '7-31', load: 1900 },
           { id: 194, name: '大良商业步行街', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
           { id: 195, name: '容桂五金老厂', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-17', load: 0 },
@@ -10593,7 +10592,7 @@ init();
           { id: 196, name: '南海铝业', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 3000 },
           { id: 197, name: '千灯湖商务区', type: '商业', x: .54, y: .48, status: 'follow', last: '7-27', load: 1300 },
           { id: 198, name: '狮山智造产业园', type: '工业', x: .74, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 199, name: '西樵纺织厂', type: '工业', x: .40, y: .74, status: 'signed', last: '7-23', load: 880 },
+          { id: 199, name: '西樵纺织厂', type: '工业', x: .40, y: .74, status: 'developed', last: '7-23', load: 880 },
           { id: 200, name: '丹灶物流中心', type: '工业', x: .84, y: .66, status: 'nointent', last: '5-16', load: 0 },
         ],
       },
@@ -10608,7 +10607,7 @@ init();
           planned: [[[.02, .54], [.14, .52], [.24, .58]], [[.88, .36], [.94, .50], [.96, .66]]],
         },
         customers: [
-          { id: 221, name: '香洲酒店', type: '商业', x: .26, y: .34, status: 'signed', last: '7-20', load: 260 },
+          { id: 221, name: '香洲酒店', type: '商业', x: .26, y: .34, status: 'developed', last: '7-20', load: 260 },
           { id: 222, name: '珠海格力配套', type: '工业', x: .56, y: .48, status: 'follow', last: '7-26', load: 2100 },
           { id: 223, name: '唐家湾大学城食堂', type: '公福', x: .36, y: .74, status: 'tovisit', last: '—', load: 0 },
           { id: 224, name: '南屏科技工业园', type: '工业', x: .78, y: .60, status: 'building', last: '7-31', load: 1600 },
@@ -10640,7 +10639,7 @@ init();
         },
         customers: [
           { id: 231, name: '滨江电子', type: '工业', x: .26, y: .34, status: 'follow', last: '7-27', load: 1800 },
-          { id: 232, name: '网易杭州园区', type: '商业', x: .56, y: .46, status: 'signed', last: '7-21', load: 1300 },
+          { id: 232, name: '网易杭州园区', type: '商业', x: .56, y: .46, status: 'developed', last: '7-21', load: 1300 },
           { id: 233, name: '长河高新技术园', type: '工业', x: .74, y: .32, status: 'building', last: '7-31', load: 2100 },
           { id: 234, name: '星光大道商业街', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
           { id: 235, name: '浦沿五金厂', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-18', load: 0 },
@@ -10657,7 +10656,7 @@ init();
           { id: 236, name: '未来科技城', type: '商业', x: .26, y: .32, status: 'building', last: '7-30', load: 2600 },
           { id: 237, name: '余杭生物医药园', type: '工业', x: .54, y: .48, status: 'follow', last: '7-28', load: 1900 },
           { id: 238, name: '良渚文创园区', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 239, name: '瓶窑装备制造', type: '工业', x: .40, y: .74, status: 'signed', last: '7-22', load: 1200 },
+          { id: 239, name: '瓶窑装备制造', type: '工业', x: .40, y: .74, status: 'developed', last: '7-22', load: 1200 },
           { id: 240, name: '仁和街道食堂', type: '公福', x: .84, y: .66, status: 'tovisit', last: '—', load: 0 },
         ],
       },
@@ -10672,7 +10671,7 @@ init();
           planned: [[[.02, .54], [.14, .52], [.24, .58]], [[.88, .38], [.94, .52], [.96, .68]]],
         },
         customers: [
-          { id: 241, name: '北仑港物流', type: '工业', x: .26, y: .34, status: 'signed', last: '7-23', load: 2800 },
+          { id: 241, name: '北仑港物流', type: '工业', x: .26, y: .34, status: 'developed', last: '7-23', load: 2800 },
           { id: 242, name: '宁波海天塑机', type: '工业', x: .56, y: .48, status: 'follow', last: '7-27', load: 2400 },
           { id: 243, name: '大榭石化配套', type: '工业', x: .74, y: .34, status: 'building', last: '7-31', load: 3200 },
           { id: 244, name: '小港码头食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
@@ -10690,7 +10689,7 @@ init();
           { id: 246, name: '慈溪小家电', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 1700 },
           { id: 247, name: '周巷家电配套', type: '工业', x: .54, y: .48, status: 'follow', last: '7-27', load: 1400 },
           { id: 248, name: '观海卫轴承厂', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 249, name: '浒山商业中心', type: '商业', x: .40, y: .74, status: 'signed', last: '7-22', load: 760 },
+          { id: 249, name: '浒山商业中心', type: '商业', x: .40, y: .74, status: 'developed', last: '7-22', load: 760 },
         ],
       },
     ],
@@ -10705,7 +10704,7 @@ init();
         },
         customers: [
           { id: 251, name: '鹿城鞋业', type: '工业', x: .26, y: .34, status: 'follow', last: '7-27', load: 1300 },
-          { id: 252, name: '五马街商业广场', type: '商业', x: .56, y: .48, status: 'signed', last: '7-21', load: 890 },
+          { id: 252, name: '五马街商业广场', type: '商业', x: .56, y: .48, status: 'developed', last: '7-21', load: 890 },
           { id: 253, name: '温州正泰电气', type: '工业', x: .74, y: .34, status: 'building', last: '7-31', load: 2200 },
           { id: 254, name: '双屿物流园', type: '工业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
         ],
@@ -10718,7 +10717,7 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .46], [.94, .58], [.96, .72]]],
         },
         customers: [
-          { id: 255, name: '乐清电器', type: '工业', x: .26, y: .32, status: 'signed', last: '7-23', load: 1600 },
+          { id: 255, name: '乐清电器', type: '工业', x: .26, y: .32, status: 'developed', last: '7-23', load: 1600 },
           { id: 256, name: '柳市低压电器城', type: '商业', x: .54, y: .48, status: 'follow', last: '7-28', load: 1200 },
           { id: 257, name: '虹桥电子产业园', type: '工业', x: .72, y: .36, status: 'building', last: '7-31', load: 1900 },
           { id: 258, name: '北白象食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0 },
@@ -10737,7 +10736,7 @@ init();
         customers: [
           { id: 261, name: '江宁电子', type: '工业', x: .26, y: .34, status: 'follow', last: '7-27', load: 1700 },
           { id: 262, name: '南京重工集团', type: '工业', x: .56, y: .48, status: 'building', last: '7-30', load: 3100 },
-          { id: 263, name: '百家湖商务区', type: '商业', x: .74, y: .34, status: 'signed', last: '7-22', load: 980 },
+          { id: 263, name: '百家湖商务区', type: '商业', x: .74, y: .34, status: 'developed', last: '7-22', load: 980 },
           { id: 264, name: '秣陵工业园食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
           { id: 265, name: '汤山温泉酒店', type: '商业', x: .84, y: .64, status: 'tovisit', last: '—', load: 0 },
         ],
@@ -10750,7 +10749,7 @@ init();
           planned: [[[.02, .48], [.14, .46], [.24, .52]], [[.88, .44], [.94, .56], [.96, .70]]],
         },
         customers: [
-          { id: 266, name: '六合化工', type: '工业', x: .26, y: .32, status: 'signed', last: '7-21', load: 2600 },
+          { id: 266, name: '六合化工', type: '工业', x: .26, y: .32, status: 'developed', last: '7-21', load: 2600 },
           { id: 267, name: '大厂钢铁配套', type: '工业', x: .54, y: .48, status: 'follow', last: '7-27', load: 2900 },
           { id: 268, name: '雄州商业街', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
           { id: 269, name: '龙袍建材厂', type: '工业', x: .40, y: .74, status: 'stalled', last: '5-20', load: 0 },
@@ -10767,7 +10766,7 @@ init();
           planned: [[[.02, .56], [.14, .54], [.24, .60]], [[.88, .34], [.94, .48], [.96, .64]]],
         },
         customers: [
-          { id: 271, name: '昆山电子', type: '工业', x: .26, y: .34, status: 'signed', last: '7-22', load: 2200 },
+          { id: 271, name: '昆山电子', type: '工业', x: .26, y: .34, status: 'developed', last: '7-22', load: 2200 },
           { id: 272, name: '苏州精密电子', type: '工业', x: .56, y: .48, status: 'follow', last: '7-27', load: 2700 },
           { id: 273, name: '花桥商务城', type: '商业', x: .74, y: .34, status: 'building', last: '7-31', load: 1500 },
           { id: 274, name: '周庄旅游酒店', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
@@ -10785,7 +10784,7 @@ init();
           { id: 276, name: '张家港钢铁', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 3400 },
           { id: 277, name: '沙钢配套加工', type: '工业', x: .54, y: .48, status: 'follow', last: '7-28', load: 2500 },
           { id: 278, name: '保税区物流园', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 279, name: '杨舍商业中心', type: '商业', x: .40, y: .74, status: 'signed', last: '7-23', load: 820 },
+          { id: 279, name: '杨舍商业中心', type: '商业', x: .40, y: .74, status: 'developed', last: '7-23', load: 820 },
         ],
       },
     ],
@@ -10801,7 +10800,7 @@ init();
         customers: [
           { id: 281, name: '江阴纺织', type: '工业', x: .26, y: .32, status: 'follow', last: '7-27', load: 1600 },
           { id: 282, name: '华西钢铁配套', type: '工业', x: .56, y: .48, status: 'building', last: '7-31', load: 3000 },
-          { id: 283, name: '澄江商业广场', type: '商业', x: .74, y: .34, status: 'signed', last: '7-22', load: 760 },
+          { id: 283, name: '澄江商业广场', type: '商业', x: .74, y: .34, status: 'developed', last: '7-22', load: 760 },
           { id: 284, name: '周庄化纤厂', type: '工业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
         ],
       },
@@ -10830,7 +10829,7 @@ init();
           planned: [[[.02, .56], [.14, .54], [.24, .60]], [[.88, .34], [.94, .48], [.96, .64]]],
         },
         customers: [
-          { id: 291, name: '龙泉驿汽车', type: '工业', x: .26, y: .34, status: 'signed', last: '7-22', load: 3200 },
+          { id: 291, name: '龙泉驿汽车', type: '工业', x: .26, y: .34, status: 'developed', last: '7-22', load: 3200 },
           { id: 292, name: '成都新川食品', type: '工业', x: .56, y: .48, status: 'follow', last: '7-27', load: 1800 },
           { id: 293, name: '经开区电子园', type: '工业', x: .74, y: .34, status: 'building', last: '7-31', load: 2400 },
           { id: 294, name: '洛带古镇商业街', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
@@ -10848,7 +10847,7 @@ init();
           { id: 296, name: '双流电子', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 1900 },
           { id: 297, name: '成都天府国际机场配套', type: '商业', x: .54, y: .48, status: 'follow', last: '7-28', load: 2200 },
           { id: 298, name: '蛟龙港工业区', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 299, name: '东升商业中心', type: '商业', x: .40, y: .74, status: 'signed', last: '7-23', load: 940 },
+          { id: 299, name: '东升商业中心', type: '商业', x: .40, y: .74, status: 'developed', last: '7-23', load: 940 },
         ],
       },
     ],
@@ -10863,7 +10862,7 @@ init();
         },
         customers: [
           { id: 311, name: '涪城机械', type: '工业', x: .26, y: .32, status: 'follow', last: '7-27', load: 1200 },
-          { id: 312, name: '绵阳长虹电子', type: '工业', x: .56, y: .48, status: 'signed', last: '7-21', load: 2600 },
+          { id: 312, name: '绵阳长虹电子', type: '工业', x: .56, y: .48, status: 'developed', last: '7-21', load: 2600 },
           { id: 313, name: '科技城商业广场', type: '商业', x: .74, y: .34, status: 'tovisit', last: '—', load: 0 },
           { id: 314, name: '游仙职教食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
         ],
@@ -10907,7 +10906,7 @@ init();
           planned: [[[.02, .48], [.14, .46], [.24, .52]], [[.88, .44], [.94, .56], [.96, .70]]],
         },
         customers: [
-          { id: 325, name: '广汉食品', type: '工业', x: .26, y: .32, status: 'signed', last: '7-23', load: 1300 },
+          { id: 325, name: '广汉食品', type: '工业', x: .26, y: .32, status: 'developed', last: '7-23', load: 1300 },
           { id: 326, name: '三星堆文旅酒店', type: '商业', x: .54, y: .48, status: 'follow', last: '7-27', load: 880 },
           { id: 327, name: '广汉航空配件', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
           { id: 328, name: '向阳镇建材厂', type: '工业', x: .40, y: .74, status: 'stalled', last: '5-20', load: 0 },
@@ -10925,7 +10924,7 @@ init();
         },
         customers: [
           { id: 331, name: '章丘锻压', type: '工业', x: .26, y: .34, status: 'follow', last: '7-27', load: 1800 },
-          { id: 332, name: '济南重汽配件', type: '工业', x: .56, y: .48, status: 'signed', last: '7-22', load: 2700 },
+          { id: 332, name: '济南重汽配件', type: '工业', x: .56, y: .48, status: 'developed', last: '7-22', load: 2700 },
           { id: 333, name: '明水商业中心', type: '商业', x: .74, y: .34, status: 'building', last: '7-31', load: 1200 },
           { id: 334, name: '绣惠食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
           { id: 335, name: '刁镇五金厂', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-18', load: 0 },
@@ -10956,7 +10955,7 @@ init();
           planned: [[[.02, .54], [.14, .52], [.24, .58]], [[.88, .36], [.94, .50], [.96, .66]]],
         },
         customers: [
-          { id: 341, name: '黄岛化工', type: '工业', x: .26, y: .32, status: 'signed', last: '7-22', load: 3100 },
+          { id: 341, name: '黄岛化工', type: '工业', x: .26, y: .32, status: 'developed', last: '7-22', load: 3100 },
           { id: 342, name: '青岛海尔家电', type: '工业', x: .56, y: .48, status: 'follow', last: '7-27', load: 2600 },
           { id: 343, name: '前湾港物流园', type: '工业', x: .74, y: .34, status: 'building', last: '7-31', load: 2300 },
           { id: 344, name: '唐岛湾商业中心', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
@@ -11002,7 +11001,7 @@ init();
           planned: [[[.02, .48], [.14, .46], [.24, .52]], [[.88, .44], [.94, .56], [.96, .70]]],
         },
         customers: [
-          { id: 355, name: '莱阳食品', type: '工业', x: .26, y: .32, status: 'signed', last: '7-23', load: 1400 },
+          { id: 355, name: '莱阳食品', type: '工业', x: .26, y: .32, status: 'developed', last: '7-23', load: 1400 },
           { id: 356, name: '鲁花花生油配套', type: '工业', x: .54, y: .48, status: 'follow', last: '7-27', load: 1800 },
           { id: 357, name: '照旺庄梨园酒店', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
           { id: 358, name: '冯格庄食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0 },
@@ -11019,7 +11018,7 @@ init();
           planned: [[[.02, .56], [.14, .54], [.24, .60]], [[.88, .34], [.94, .48], [.96, .64]]],
         },
         customers: [
-          { id: 361, name: '光谷电子', type: '工业', x: .26, y: .34, status: 'signed', last: '7-22', load: 2400 },
+          { id: 361, name: '光谷电子', type: '工业', x: .26, y: .34, status: 'developed', last: '7-22', load: 2400 },
           { id: 362, name: '武汉东汽零部件', type: '工业', x: .56, y: .48, status: 'follow', last: '7-27', load: 2900 },
           { id: 363, name: '光谷生物城', type: '工业', x: .74, y: .34, status: 'building', last: '7-31', load: 2200 },
           { id: 364, name: '鲁巷商业广场', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
@@ -11052,7 +11051,7 @@ init();
         },
         customers: [
           { id: 371, name: '猇亭化工', type: '工业', x: .26, y: .32, status: 'follow', last: '7-27', load: 3200 },
-          { id: 372, name: '宜昌三峡酒业', type: '工业', x: .56, y: .48, status: 'signed', last: '7-22', load: 1700 },
+          { id: 372, name: '宜昌三峡酒业', type: '工业', x: .56, y: .48, status: 'developed', last: '7-22', load: 1700 },
           { id: 373, name: '三峡物流园', type: '工业', x: .74, y: .34, status: 'tovisit', last: '—', load: 0 },
           { id: 374, name: '古老背食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
         ],
@@ -11096,7 +11095,7 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .46], [.94, .58], [.96, .72]]],
         },
         customers: [
-          { id: 385, name: '枣阳食品', type: '工业', x: .26, y: .32, status: 'signed', last: '7-23', load: 1200 },
+          { id: 385, name: '枣阳食品', type: '工业', x: .26, y: .32, status: 'developed', last: '7-23', load: 1200 },
           { id: 386, name: '枣阳汽车零部件', type: '工业', x: .54, y: .48, status: 'follow', last: '7-27', load: 1900 },
           { id: 387, name: '吴店商业街', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
           { id: 388, name: '南城街道食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0 },
@@ -11116,38 +11115,38 @@ init();
 
   /* ================= 区域数据（全国 → 省 → 市 三级钻取） ================= */
   const regions = [
-    { id: 'gd', name: '广东省', adcode: '440000', keyCustomers: [{ name: '宏远五金制品厂', status: 'follow' }, { name: '顺丰食品加工园', status: 'building' }, { name: '悦湖酒店', status: 'signed' }], x: .68, y: .72, cities: [
-      { id: 'sz', name: '深圳市', keyCustomers: [{ name: '恒信纺织厂', status: 'follow' }, { name: '华骏汽配产业园', status: 'building' }, { name: '望江宾馆', status: 'signed' }], x: .64, y: .80, detailed: true },
-      { id: 'gz', name: '广州市', keyCustomers: [{ name: '广州汽车零部件', status: 'signed' }, { name: '黄埔化工', status: 'follow' }, { name: '番禺食品', status: 'signed' }], x: .40, y: .42, summary: { total: 16, signed: 3, opened: 0, follow: 3, building: 3, tovisit: 5, stalled: 2, nointent: 0, load: 16020 } },
-      { id: 'dg', name: '东莞市', keyCustomers: [{ name: '东莞电子科技', status: 'follow' }, { name: '松山湖精密制造', status: 'building' }, { name: '虎门服装', status: 'signed' }], x: .60, y: .50, summary: { total: 16, signed: 2, opened: 0, follow: 3, building: 3, tovisit: 5, stalled: 2, nointent: 1, load: 14740 } },
-      { id: 'fs', name: '佛山市', keyCustomers: [{ name: '佛山陶瓷厂', status: 'signed' }, { name: '顺德家电', status: 'follow' }, { name: '南海铝业', status: 'building' }], x: .32, y: .58, summary: { total: 10, signed: 2, opened: 0, follow: 2, building: 2, tovisit: 2, stalled: 1, nointent: 1, load: 10580 } },
-      { id: 'zh', name: '珠海市', keyCustomers: [{ name: '珠海格力配套', status: 'follow' }, { name: '金湾生物医药', status: 'building' }, { name: '香洲酒店', status: 'signed' }], x: .45, y: .74, summary: { total: 8, signed: 1, opened: 0, follow: 2, building: 2, tovisit: 3, stalled: 0, nointent: 0, load: 7360 } },
+    { id: 'gd', name: '广东省', adcode: '440000', keyCustomers: [{ name: '宏远五金制品厂', status: 'follow' }, { name: '顺丰食品加工园', status: 'building' }, { name: '悦湖酒店', status: 'developed' }], x: .68, y: .72, cities: [
+      { id: 'sz', name: '深圳市', keyCustomers: [{ name: '恒信纺织厂', status: 'follow' }, { name: '华骏汽配产业园', status: 'building' }, { name: '望江宾馆', status: 'developed' }], x: .64, y: .80, detailed: true },
+      { id: 'gz', name: '广州市', keyCustomers: [{ name: '广州汽车零部件', status: 'developed' }, { name: '黄埔化工', status: 'follow' }, { name: '番禺食品', status: 'developed' }], x: .40, y: .42, summary: { total: 16, developed: 3, follow: 3, building: 3, tovisit: 5, stalled: 2, nointent: 0, load: 16020 } },
+      { id: 'dg', name: '东莞市', keyCustomers: [{ name: '东莞电子科技', status: 'follow' }, { name: '松山湖精密制造', status: 'building' }, { name: '虎门服装', status: 'developed' }], x: .60, y: .50, summary: { total: 16, developed: 2, follow: 3, building: 3, tovisit: 5, stalled: 2, nointent: 1, load: 14740 } },
+      { id: 'fs', name: '佛山市', keyCustomers: [{ name: '佛山陶瓷厂', status: 'developed' }, { name: '顺德家电', status: 'follow' }, { name: '南海铝业', status: 'building' }], x: .32, y: .58, summary: { total: 10, developed: 2, follow: 2, building: 2, tovisit: 2, stalled: 1, nointent: 1, load: 10580 } },
+      { id: 'zh', name: '珠海市', keyCustomers: [{ name: '珠海格力配套', status: 'follow' }, { name: '金湾生物医药', status: 'building' }, { name: '香洲酒店', status: 'developed' }], x: .45, y: .74, summary: { total: 8, developed: 1, follow: 2, building: 2, tovisit: 3, stalled: 0, nointent: 0, load: 7360 } },
     ] },
-    { id: 'zj', name: '浙江省', adcode: '330000', keyCustomers: [{ name: '宁波海天塑机', status: 'follow' }, { name: '杭州华东食品', status: 'signed' }, { name: '温州正泰电气', status: 'building' }], x: .82, y: .56, cities: [
-      { id: 'hz', name: '杭州市', keyCustomers: [{ name: '杭州华东食品', status: 'signed' }, { name: '滨江电子', status: 'follow' }, { name: '萧山纺织', status: 'building' }], x: .42, y: .40, summary: { total: 10, signed: 2, opened: 0, follow: 2, building: 2, tovisit: 3, stalled: 1, nointent: 0, load: 10900 } },
-      { id: 'nb', name: '宁波市', keyCustomers: [{ name: '宁波海天塑机', status: 'follow' }, { name: '北仑港物流', status: 'signed' }, { name: '慈溪小家电', status: 'building' }], x: .64, y: .56, summary: { total: 9, signed: 2, opened: 0, follow: 2, building: 2, tovisit: 2, stalled: 1, nointent: 0, load: 12260 } },
-      { id: 'wz', name: '温州市', keyCustomers: [{ name: '温州正泰电气', status: 'building' }, { name: '鹿城鞋业', status: 'follow' }, { name: '乐清电器', status: 'signed' }], x: .56, y: .74, summary: { total: 8, signed: 2, opened: 0, follow: 2, building: 2, tovisit: 2, stalled: 0, nointent: 0, load: 9090 } },
+    { id: 'zj', name: '浙江省', adcode: '330000', keyCustomers: [{ name: '宁波海天塑机', status: 'follow' }, { name: '杭州华东食品', status: 'developed' }, { name: '温州正泰电气', status: 'building' }], x: .82, y: .56, cities: [
+      { id: 'hz', name: '杭州市', keyCustomers: [{ name: '杭州华东食品', status: 'developed' }, { name: '滨江电子', status: 'follow' }, { name: '萧山纺织', status: 'building' }], x: .42, y: .40, summary: { total: 10, developed: 2, follow: 2, building: 2, tovisit: 3, stalled: 1, nointent: 0, load: 10900 } },
+      { id: 'nb', name: '宁波市', keyCustomers: [{ name: '宁波海天塑机', status: 'follow' }, { name: '北仑港物流', status: 'developed' }, { name: '慈溪小家电', status: 'building' }], x: .64, y: .56, summary: { total: 9, developed: 2, follow: 2, building: 2, tovisit: 2, stalled: 1, nointent: 0, load: 12260 } },
+      { id: 'wz', name: '温州市', keyCustomers: [{ name: '温州正泰电气', status: 'building' }, { name: '鹿城鞋业', status: 'follow' }, { name: '乐清电器', status: 'developed' }], x: .56, y: .74, summary: { total: 8, developed: 2, follow: 2, building: 2, tovisit: 2, stalled: 0, nointent: 0, load: 9090 } },
     ] },
-    { id: 'js', name: '江苏省', adcode: '320000', keyCustomers: [{ name: '苏州精密电子', status: 'follow' }, { name: '无锡新能源科技', status: 'signed' }, { name: '南京重工集团', status: 'building' }], x: .78, y: .40, cities: [
-      { id: 'nj', name: '南京市', keyCustomers: [{ name: '南京重工集团', status: 'building' }, { name: '江宁电子', status: 'follow' }, { name: '六合化工', status: 'signed' }], x: .40, y: .42, summary: { total: 9, signed: 2, opened: 0, follow: 2, building: 1, tovisit: 3, stalled: 1, nointent: 0, load: 11280 } },
-      { id: 'szs', name: '苏州市', keyCustomers: [{ name: '苏州精密电子', status: 'follow' }, { name: '昆山电子', status: 'signed' }, { name: '张家港钢铁', status: 'building' }], x: .54, y: .66, summary: { total: 9, signed: 2, opened: 0, follow: 2, building: 2, tovisit: 2, stalled: 1, nointent: 0, load: 13120 } },
-      { id: 'wx', name: '无锡市', keyCustomers: [{ name: '无锡新能源科技', status: 'signed' }, { name: '江阴纺织', status: 'follow' }, { name: '宜兴环保设备', status: 'building' }], x: .44, y: .62, summary: { total: 8, signed: 1, opened: 0, follow: 2, building: 2, tovisit: 3, stalled: 0, nointent: 0, load: 7860 } },
+    { id: 'js', name: '江苏省', adcode: '320000', keyCustomers: [{ name: '苏州精密电子', status: 'follow' }, { name: '无锡新能源科技', status: 'developed' }, { name: '南京重工集团', status: 'building' }], x: .78, y: .40, cities: [
+      { id: 'nj', name: '南京市', keyCustomers: [{ name: '南京重工集团', status: 'building' }, { name: '江宁电子', status: 'follow' }, { name: '六合化工', status: 'developed' }], x: .40, y: .42, summary: { total: 9, developed: 2, follow: 2, building: 1, tovisit: 3, stalled: 1, nointent: 0, load: 11280 } },
+      { id: 'szs', name: '苏州市', keyCustomers: [{ name: '苏州精密电子', status: 'follow' }, { name: '昆山电子', status: 'developed' }, { name: '张家港钢铁', status: 'building' }], x: .54, y: .66, summary: { total: 9, developed: 2, follow: 2, building: 2, tovisit: 2, stalled: 1, nointent: 0, load: 13120 } },
+      { id: 'wx', name: '无锡市', keyCustomers: [{ name: '无锡新能源科技', status: 'developed' }, { name: '江阴纺织', status: 'follow' }, { name: '宜兴环保设备', status: 'building' }], x: .44, y: .62, summary: { total: 8, developed: 1, follow: 2, building: 2, tovisit: 3, stalled: 0, nointent: 0, load: 7860 } },
     ] },
-    { id: 'sc', name: '四川省', adcode: '510000', keyCustomers: [{ name: '成都新川食品', status: 'follow' }, { name: '绵阳长虹电子', status: 'signed' }, { name: '德阳东电机械', status: 'building' }], x: .28, y: .52, cities: [
-      { id: 'cd', name: '成都市', keyCustomers: [{ name: '成都新川食品', status: 'follow' }, { name: '龙泉驿汽车', status: 'signed' }, { name: '双流电子', status: 'building' }], x: .42, y: .44, summary: { total: 9, signed: 2, opened: 0, follow: 2, building: 2, tovisit: 2, stalled: 1, nointent: 0, load: 12440 } },
-      { id: 'my', name: '绵阳市', keyCustomers: [{ name: '绵阳长虹电子', status: 'signed' }, { name: '涪城机械', status: 'follow' }, { name: '江油冶金', status: 'building' }], x: .52, y: .26, summary: { total: 8, signed: 1, opened: 0, follow: 2, building: 1, tovisit: 4, stalled: 0, nointent: 0, load: 8700 } },
-      { id: 'dy', name: '德阳市', keyCustomers: [{ name: '德阳东电机械', status: 'building' }, { name: '旌阳化工', status: 'follow' }, { name: '广汉食品', status: 'signed' }], x: .40, y: .60, summary: { total: 8, signed: 1, opened: 0, follow: 2, building: 1, tovisit: 3, stalled: 1, nointent: 0, load: 6580 } },
+    { id: 'sc', name: '四川省', adcode: '510000', keyCustomers: [{ name: '成都新川食品', status: 'follow' }, { name: '绵阳长虹电子', status: 'developed' }, { name: '德阳东电机械', status: 'building' }], x: .28, y: .52, cities: [
+      { id: 'cd', name: '成都市', keyCustomers: [{ name: '成都新川食品', status: 'follow' }, { name: '龙泉驿汽车', status: 'developed' }, { name: '双流电子', status: 'building' }], x: .42, y: .44, summary: { total: 9, developed: 2, follow: 2, building: 2, tovisit: 2, stalled: 1, nointent: 0, load: 12440 } },
+      { id: 'my', name: '绵阳市', keyCustomers: [{ name: '绵阳长虹电子', status: 'developed' }, { name: '涪城机械', status: 'follow' }, { name: '江油冶金', status: 'building' }], x: .52, y: .26, summary: { total: 8, developed: 1, follow: 2, building: 1, tovisit: 4, stalled: 0, nointent: 0, load: 8700 } },
+      { id: 'dy', name: '德阳市', keyCustomers: [{ name: '德阳东电机械', status: 'building' }, { name: '旌阳化工', status: 'follow' }, { name: '广汉食品', status: 'developed' }], x: .40, y: .60, summary: { total: 8, developed: 1, follow: 2, building: 1, tovisit: 3, stalled: 1, nointent: 0, load: 6580 } },
     ] },
-    { id: 'sd', name: '山东省', adcode: '370000', keyCustomers: [{ name: '青岛海尔家电', status: 'follow' }, { name: '济南重汽配件', status: 'signed' }, { name: '烟台万华化纤', status: 'building' }], x: .74, y: .22, cities: [
-      { id: 'jn', name: '济南市', keyCustomers: [{ name: '济南重汽配件', status: 'signed' }, { name: '章丘锻压', status: 'follow' }, { name: '长清电子', status: 'building' }], x: .42, y: .42, summary: { total: 9, signed: 1, opened: 0, follow: 2, building: 2, tovisit: 3, stalled: 1, nointent: 0, load: 8220 } },
-      { id: 'qd', name: '青岛市', keyCustomers: [{ name: '青岛海尔家电', status: 'follow' }, { name: '黄岛化工', status: 'signed' }, { name: '城阳食品', status: 'building' }], x: .62, y: .52, summary: { total: 9, signed: 1, opened: 0, follow: 2, building: 2, tovisit: 4, stalled: 0, nointent: 0, load: 11900 } },
-      { id: 'yt', name: '烟台市', keyCustomers: [{ name: '烟台万华化纤', status: 'building' }, { name: '龙口铝业', status: 'follow' }, { name: '莱阳食品', status: 'signed' }], x: .62, y: .30, summary: { total: 8, signed: 1, opened: 0, follow: 2, building: 1, tovisit: 4, stalled: 0, nointent: 0, load: 8200 } },
-      { id: 'jining', name: '济宁市', keyCustomers: [{ name: '华晟精密制造', status: 'signed' }, { name: '曲阜圣源酒业', status: 'follow' }, { name: '邹城煤矿机械厂', status: 'follow' }], x: .44, y: .62, summary: { total: 37, signed: 5, opened: 0, follow: 9, building: 6, tovisit: 10, stalled: 4, nointent: 3, load: 26500 }, pcs: ['jining_co', 'qufu_co', 'zoucheng_co'] },
+    { id: 'sd', name: '山东省', adcode: '370000', keyCustomers: [{ name: '青岛海尔家电', status: 'follow' }, { name: '济南重汽配件', status: 'developed' }, { name: '烟台万华化纤', status: 'building' }], x: .74, y: .22, cities: [
+      { id: 'jn', name: '济南市', keyCustomers: [{ name: '济南重汽配件', status: 'developed' }, { name: '章丘锻压', status: 'follow' }, { name: '长清电子', status: 'building' }], x: .42, y: .42, summary: { total: 9, developed: 1, follow: 2, building: 2, tovisit: 3, stalled: 1, nointent: 0, load: 8220 } },
+      { id: 'qd', name: '青岛市', keyCustomers: [{ name: '青岛海尔家电', status: 'follow' }, { name: '黄岛化工', status: 'developed' }, { name: '城阳食品', status: 'building' }], x: .62, y: .52, summary: { total: 9, developed: 1, follow: 2, building: 2, tovisit: 4, stalled: 0, nointent: 0, load: 11900 } },
+      { id: 'yt', name: '烟台市', keyCustomers: [{ name: '烟台万华化纤', status: 'building' }, { name: '龙口铝业', status: 'follow' }, { name: '莱阳食品', status: 'developed' }], x: .62, y: .30, summary: { total: 8, developed: 1, follow: 2, building: 1, tovisit: 4, stalled: 0, nointent: 0, load: 8200 } },
+      { id: 'jining', name: '济宁市', keyCustomers: [{ name: '华晟精密制造', status: 'developed' }, { name: '曲阜圣源酒业', status: 'follow' }, { name: '邹城煤矿机械厂', status: 'follow' }], x: .44, y: .62, summary: { total: 37, developed: 5, follow: 9, building: 6, tovisit: 10, stalled: 4, nointent: 3, load: 26500 }, pcs: ['jining_co', 'qufu_co', 'zoucheng_co'] },
     ] },
-    { id: 'hb', name: '湖北省', adcode: '420000', keyCustomers: [{ name: '武汉东汽零部件', status: 'follow' }, { name: '宜昌三峡酒业', status: 'signed' }, { name: '襄阳骆驼电池', status: 'building' }], x: .46, y: .48, cities: [
-      { id: 'wh', name: '武汉市', keyCustomers: [{ name: '武汉东汽零部件', status: 'follow' }, { name: '光谷电子', status: 'signed' }, { name: '沌口食品', status: 'building' }], x: .50, y: .50, summary: { total: 9, signed: 1, opened: 0, follow: 2, building: 2, tovisit: 3, stalled: 1, nointent: 0, load: 12400 } },
-      { id: 'yc', name: '宜昌市', keyCustomers: [{ name: '宜昌三峡酒业', status: 'signed' }, { name: '猇亭化工', status: 'follow' }, { name: '枝江纺织', status: 'building' }], x: .30, y: .58, summary: { total: 8, signed: 1, opened: 0, follow: 2, building: 1, tovisit: 4, stalled: 0, nointent: 0, load: 7900 } },
-      { id: 'xy', name: '襄阳市', keyCustomers: [{ name: '襄阳骆驼电池', status: 'building' }, { name: '樊城机械', status: 'follow' }, { name: '枣阳食品', status: 'signed' }], x: .38, y: .34, summary: { total: 8, signed: 1, opened: 0, follow: 2, building: 1, tovisit: 4, stalled: 0, nointent: 0, load: 7200 } },
+    { id: 'hb', name: '湖北省', adcode: '420000', keyCustomers: [{ name: '武汉东汽零部件', status: 'follow' }, { name: '宜昌三峡酒业', status: 'developed' }, { name: '襄阳骆驼电池', status: 'building' }], x: .46, y: .48, cities: [
+      { id: 'wh', name: '武汉市', keyCustomers: [{ name: '武汉东汽零部件', status: 'follow' }, { name: '光谷电子', status: 'developed' }, { name: '沌口食品', status: 'building' }], x: .50, y: .50, summary: { total: 9, developed: 1, follow: 2, building: 2, tovisit: 3, stalled: 1, nointent: 0, load: 12400 } },
+      { id: 'yc', name: '宜昌市', keyCustomers: [{ name: '宜昌三峡酒业', status: 'developed' }, { name: '猇亭化工', status: 'follow' }, { name: '枝江纺织', status: 'building' }], x: .30, y: .58, summary: { total: 8, developed: 1, follow: 2, building: 1, tovisit: 4, stalled: 0, nointent: 0, load: 7900 } },
+      { id: 'xy', name: '襄阳市', keyCustomers: [{ name: '襄阳骆驼电池', status: 'building' }, { name: '樊城机械', status: 'follow' }, { name: '枣阳食品', status: 'developed' }], x: .38, y: .34, summary: { total: 8, developed: 1, follow: 2, building: 1, tovisit: 4, stalled: 0, nointent: 0, load: 7200 } },
     ] },
   ];
 
@@ -11324,7 +11323,7 @@ init();
   }
 
   function pcSummary(pc) {
-    const s = { total: 0, signed: 0, opened: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 };
+    const s = { total: 0, developed: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 };
     (pc ? pc.customers : pcCustomers()).forEach(c => { s.total++; s[c.status] = (s[c.status] || 0) + 1; s.load += (c.load || 0); });
     return s;
   }
@@ -11333,17 +11332,17 @@ init();
     if (city.detailed) return pcSummary(null);
     const pcs = cityPCs(city);
     if (!pcs.length) return city.summary;
-    const s = { total: 0, signed: 0, opened: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 };
+    const s = { total: 0, developed: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 };
     pcs.forEach(pc => { const cs = pcSummary(pc); for (const k in s) s[k] += (cs[k] || 0); });
     return s;
   }
   function provinceSummary(p) {
-    const s = { total: 0, signed: 0, opened: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 };
+    const s = { total: 0, developed: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 };
     p.cities.forEach(c => { const cs = citySummary(c); for (const k in s) s[k] += (cs[k] || 0); });
     return s;
   }
   function currentSummary() {
-    if (viewLevel === 0) { const s = { total: 0, signed: 0, opened: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 }; regions.forEach(p => { const ps = provinceSummary(p); for (const k in s) s[k] += ps[k]; }); return s; }
+    if (viewLevel === 0) { const s = { total: 0, developed: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 }; regions.forEach(p => { const ps = provinceSummary(p); for (const k in s) s[k] += ps[k]; }); return s; }
     if (viewLevel === 1) return provinceSummary(currentProvince);
     return pcSummary(null);   // 市级视图：当前项目公司的客户池
   }
@@ -11356,7 +11355,7 @@ init();
     { min: .25, fill: '#3D8BFF', text: '#ffffff' },  // 25%~50%  推进中
     { min: 0,   fill: '#A3C8FF', text: '#0B2C57' },  // <25%     起步
   ];
-  function regionStyle(s) { const rate = s && s.total ? s.signed / s.total : 0; return REGION_RAMP.find(b => rate >= b.min); }
+  function regionStyle(s) { const rate = s && s.total ? s.developed / s.total : 0; return REGION_RAMP.find(b => rate >= b.min); }
   function regionFill(s) { return regionStyle(s).fill; }
   function regionText(s) { return regionStyle(s).text; }
   function regionList() { return viewLevel === 0 ? regions : (currentProvince ? currentProvince.cities : []); }
@@ -11502,7 +11501,7 @@ init();
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(r.name, x, y - h * 0.16);
     ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
-    ctx.fillText('客户 ' + s.total + ' · 签约 ' + (s.opened || 0) + ' · 已推送报装 ' + (s.signed || 0), x, y + h * 0.14);
+    ctx.fillText('客户 ' + s.total + ' · 已开发 ' + (s.developed || 0) + ' · 意向 ' + (s.follow || 0), x, y + h * 0.14);
     if (s.load) ctx.fillText(s.load.toLocaleString() + ' m³/日', x, y + h * 0.34);
     ctx.restore();
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
@@ -11630,14 +11629,14 @@ init();
     btn.style.display = viewLevel === 0 ? 'none' : 'flex';
   }
   $id('mapBack').onclick = () => { if (viewLevel === 2) goProvince(currentProvince); else goCountry(); };
-  /* —— 侧栏汇总：全国 / 省级视图显示本级的客户、签约、已推送报装、意向数量 —— */
+  /* —— 侧栏汇总：全国 / 省级视图显示本级的客户、已开发、意向数量 —— */
   function renderPoolSum() {
     const el = $id('poolSum');
     if (!el) return;
     if (viewLevel === 2) { el.style.display = 'none'; return; }
     const s = currentSummary();
     el.style.display = 'flex';
-    el.innerHTML = `<span>客户 <b>${s.total || 0}</b></span><span>签约 <b>${s.opened || 0}</b></span><span>已推送报装 <b>${s.signed || 0}</b></span><span>意向 <b>${s.follow || 0}</b></span>`;
+    el.innerHTML = `<span>客户 <b>${s.total || 0}</b></span><span>已开发 <b>${s.developed || 0}</b></span><span>意向 <b>${s.follow || 0}</b></span>`;
   }
   /* —— 项目公司切换器：市级视图显示该市下辖的项目公司（下拉选择），切换后重载客户池与管网 —— */
   function renderPCSwitch() {
@@ -11762,7 +11761,7 @@ init();
         const keyHtml = (viewLevel < 2 && reg.keyCustomers) ? `<div class="p-key">在开发代表客户</div>` + reg.keyCustomers.map(k => `<div class="p-cust"><span class="kdot" style="background:${STATUS[k.status].color}"></span>${k.name}<span class="kst">${STATUS[k.status].name}</span></div>`).join('') : '';
         popup.style.display = 'block';
         popup.style.left = px + 'px'; popup.style.top = py + 'px';
-        popup.innerHTML = `<div class="p-name">${reg.name}</div><div class="p-row">客户 ${s.total} · 签约 ${s.opened || 0} · 已推送报装 ${s.signed} · 意向 ${s.follow}${s.load ? ' · ' + s.load.toLocaleString() + ' m³/日' : ''}</div>${keyHtml}<div class="p-row" style="margin-top:4px;color:var(--brand)">点击/滚轮进入 →</div>`;
+        popup.innerHTML = `<div class="p-name">${reg.name}</div><div class="p-row">客户 ${s.total} · 已开发 ${s.developed || 0} · 意向 ${s.follow}${s.load ? ' · ' + s.load.toLocaleString() + ' m³/日' : ''}</div>${keyHtml}<div class="p-row" style="margin-top:4px;color:var(--brand)">点击/滚轮进入 →</div>`;
         if (prev !== reg) draw();
       } else { popup.style.display = 'none'; if (prev) draw(); }
       return;
@@ -11913,10 +11912,10 @@ init();
     $id('poolCount').textContent = `（${arr.length}）`;
     arr.forEach(r => {
       const s = viewLevel === 0 ? provinceSummary(r) : citySummary(r);
-      const rate = s.total ? Math.round(s.signed / s.total * 100) : 0;
+      const rate = s.total ? Math.round(s.developed / s.total * 100) : 0;
       const el = document.createElement('div');
       el.className = 'cust';
-      el.innerHTML = `<div class="name">${r.name}<span class="badge" style="background:${regionFill(s)};color:${regionText(s)}">转化率 ${rate}%</span>${s.load ? `<span class="load">${s.load.toLocaleString()} m³/日</span>` : ''}</div><div class="meta"><span>客户 ${s.total} · 签约 ${s.opened || 0} · 已推送报装 ${s.signed} · 意向 ${s.follow}</span></div>`;
+      el.innerHTML = `<div class="name">${r.name}<span class="badge" style="background:${regionFill(s)};color:${regionText(s)}">已开发率 ${rate}%</span>${s.load ? `<span class="load">${s.load.toLocaleString()} m³/日</span>` : ''}</div><div class="meta"><span>客户 ${s.total} · 已开发 ${s.developed || 0} · 意向 ${s.follow}</span></div>`;
       el.onclick = () => { viewLevel === 0 ? goProvince(r) : goCity(r); };
       list.appendChild(el);
     });
