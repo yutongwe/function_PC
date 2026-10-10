@@ -1859,6 +1859,12 @@ table { border-collapse: collapse; width: 100%; }
 .cdmap .popup { position:absolute; z-index:8; background:var(--panel); border:1px solid var(--line); border-radius:10px; box-shadow:0 2px 10px rgba(30,50,60,.12); padding:9px 12px; font-size:12px; pointer-events:none; transform:translate(-50%,-118%); white-space:nowrap; }
 .cdmap .popup .p-name { font-weight:700; font-size:13px; }
 .cdmap .popup .p-row { color:var(--muted); margin-top:2px; }
+.cdmap .popup .p-contact { margin-top:5px; padding-top:4px; border-top:1px dashed #eef2f4; color:#2b3a42; display:flex; align-items:center; gap:5px; }
+.cdmap .popup .p-contact .pc-ico { width:11px; height:11px; flex:0 0 auto; color:var(--brand); }
+.cdmap .popup .p-contact .pc-tel { color:var(--muted); }
+.cdmap .popup .p-owner { color:var(--muted); margin-top:2px; display:flex; align-items:center; gap:5px; }
+.cdmap .popup .p-owner .po-ico { width:11px; height:11px; flex:0 0 auto; color:var(--muted); }
+.cdmap .popup .p-owner b { color:#2b3a42; }
 .cdmap .popup .p-key { margin-top:6px; padding-top:5px; border-top:1px dashed #eef2f4; color:var(--brand-dark); font-weight:600; font-size:11px; }
 .cdmap .popup .p-cust { color:#2b3a42; margin-top:2px; display:flex; align-items:center; gap:6px; }
 .cdmap .popup .p-cust .kdot { width:7px; height:7px; border-radius:50%; flex:0 0 auto; }
@@ -10320,11 +10326,26 @@ init();
   const STATUS = {
     tovisit:   { name: '待走访',      color: '#3D8BFF', ink: '#1B5FC1', desc: '新入池、还没上过门的客户' },
     follow:    { name: '意向跟进中',  color: '#FF9F43', ink: '#B35A00', desc: '首访后判断有意向，正在重点跟进' },
-    developed: { name: '已开发',      color: '#0E8A4A', ink: '#0E8A4A', desc: '已推送报装或已开户客户（合并口径）' },
+    developed: { name: '已开发',      color: '#0E8A4A', ink: '#0E8A4A', desc: '已推送报装的客户' },
     building:  { name: '在建',        color: '#7C5CFF', ink: '#5B3BD0', desc: '厂房还在建设的客户' },
-    stalled:   { name: '停滞',        color: '#F5483B', ink: '#C02015', desc: '长期未走访/跟进中断' },
+    stalled:   { name: '停滞',        color: '#F5483B', ink: '#C02015', desc: '开发计划已逾期' },
     nointent:  { name: '无意向',      color: '#9AA5B5', ink: '#5A6773', desc: '暂无用气意向' },
   };
+  /* —— 状态多值支持 ——
+     客户的 status 允许是「单值字符串」或「状态键数组」（如 ['follow','building'] 表示
+     「意向跟进中 + 在建」可以共存）。以下三个访问器统一处理两种形态，所有读 status
+     的地方都应走这里，不要直接读 c.status。
+       statusList(c)     → 归一化为数组，顺序按 STATUS 字典序
+       primaryStatus(c)  → 主状态（图钉底色用它）：数组取字典序最靠前的那个
+       hasStatus(c, k)   → 该客户是否处于状态 k（筛选/计数用） */
+  const STATUS_KEYS = Object.keys(STATUS);
+  function statusList(c) {
+    const raw = c && c.status;
+    const arr = Array.isArray(raw) ? raw.slice() : (raw ? [raw] : []);
+    return arr.filter(k => STATUS[k]).sort((a, b) => STATUS_KEYS.indexOf(a) - STATUS_KEYS.indexOf(b));
+  }
+  function primaryStatus(c) { const l = statusList(c); return l.length ? l[0] : 'tovisit'; }
+  function hasStatus(c, k) { return statusList(c).indexOf(k) >= 0; }
 
   /* —— 项目公司（市级视图的最下层管理单元：一个市下有多个项目公司，各自独立客户池与管网） —— */
   function buildBase() {
@@ -10350,21 +10371,21 @@ init();
           planned: [[[.02, .40], [.15, .42], [.22, .48]], [[.90, .52], [.95, .65], [.97, .80]]],
         },
         customers: [
-          { id: 1, name: '宏远五金制品厂', type: '工业', x: .13, y: .24, status: 'follow', last: '7-28', load: 800 },
-          { id: 2, name: '鑫泰电子科技', type: '工业', x: .23, y: .66, status: 'tovisit', last: '—', load: 0 },
-          { id: 3, name: '悦湖酒店', type: '商业', x: .36, y: .41, status: 'developed', last: '7-25', load: 300 },
-          { id: 4, name: '顺丰食品加工园', type: '工业', x: .47, y: .16, status: 'building', last: '7-30', load: 2000 },
-          { id: 5, name: '老城商业街铺', type: '商业', x: .55, y: .54, status: 'stalled', last: '6-02', load: 0 },
-          { id: 6, name: '恒信纺织厂', type: '工业', x: .65, y: .31, status: 'follow', last: '7-29', load: 1200 },
-          { id: 7, name: '江畔中学食堂', type: '公福', x: .74, y: .61, status: 'tovisit', last: '—', load: 0 },
-          { id: 8, name: '东城陶瓷厂', type: '工业', x: .86, y: .22, status: 'nointent', last: '5-18', load: 0 },
-          { id: 9, name: '蓝天洗涤中心', type: '商业', x: .87, y: .47, status: 'tovisit', last: '—', load: 0 },
-          { id: 10, name: '西郊玻璃厂', type: '工业', x: .08, y: .49, status: 'stalled', last: '5-30', load: 0 },
-          { id: 11, name: '绿源中央厨房', type: '商业', x: .40, y: .77, status: 'follow', last: '7-27', load: 500 },
-          { id: 12, name: '华骏汽配产业园', type: '工业', x: .60, y: .84, status: 'building', last: '7-30', load: 3500 },
-          { id: 13, name: '望江宾馆', type: '商业', x: .30, y: .30, status: 'developed', last: '7-20', load: 180 },
-          { id: 14, name: '新星塑料厂', type: '工业', x: .78, y: .79, status: 'tovisit', last: '—', load: 0 },
-          { id: 15, name: '富民农贸市场', type: '商业', x: .50, y: .36, status: 'tovisit', last: '—', load: 0 },
+          { id: 1, name: '宏远五金制品厂', type: '工业', x: .13, y: .24, status: 'follow', owner: '王明', last: '7-28', load: 800, contact: '徐振华', contactTitle: '安环主管', phone: '153-10011732' },
+          { id: 2, name: '鑫泰电子科技', type: '工业', x: .23, y: .66, status: 'tovisit', last: '—', load: 0, contact: '林博文', contactTitle: '设备科长', phone: '158-10019893' },
+          { id: 3, name: '悦湖酒店', type: '商业', x: .36, y: .41, status: 'developed', owner: '陈刚', last: '7-25', load: 300, contact: '唐伟东', contactTitle: '行政经理', phone: '176-10028054' },
+          { id: 4, name: '顺丰食品加工园', type: '工业', x: .47, y: .16, status: ['follow', 'building'], owner: '赵调度', last: '7-30', load: 2000, contact: '李国庆', contactTitle: '采购经理', phone: '187-10036215' },
+          { id: 5, name: '老城商业街铺', type: '商业', x: .55, y: .54, status: 'stalled', last: '6-02', load: 0, contact: '周梓涵', contactTitle: '采购经理', phone: '138-10044376' },
+          { id: 6, name: '恒信纺织厂', type: '工业', x: .65, y: .31, status: 'follow', owner: '刘经理', last: '7-29', load: 1200, contact: '郭明辉', contactTitle: '动力车间主任', phone: '136-10052537' },
+          { id: 7, name: '江畔中学食堂', type: '公福', x: .74, y: .61, status: 'tovisit', last: '—', load: 0, contact: '谢立新', contactTitle: '总务科长', phone: '151-10060698' },
+          { id: 8, name: '东城陶瓷厂', type: '工业', x: .86, y: .22, status: 'nointent', last: '5-18', load: 0, contact: '曹晨曦', contactTitle: '总经理', phone: '155-10068859' },
+          { id: 9, name: '蓝天洗涤中心', type: '商业', x: .87, y: .47, status: 'tovisit', last: '—', load: 0, contact: '赵海涛', contactTitle: '运营总监', phone: '159-10077020' },
+          { id: 10, name: '西郊玻璃厂', type: '工业', x: .08, y: .49, status: 'stalled', last: '5-30', load: 0, contact: '朱俊帆', contactTitle: '设备科长', phone: '177-10085181' },
+          { id: 11, name: '绿源中央厨房', type: '商业', x: .40, y: .77, status: 'follow', owner: '赵调度', last: '7-27', load: 500, contact: '郑子轩', contactTitle: '总经理', phone: '188-10093342' },
+          { id: 12, name: '华骏汽配产业园', type: '工业', x: .60, y: .84, status: ['follow', 'building'], owner: '李工', last: '7-30', load: 3500, contact: '冯志强', contactTitle: '采购经理', phone: '139-10101503' },
+          { id: 13, name: '望江宾馆', type: '商业', x: .30, y: .30, status: 'developed', owner: '刘经理', last: '7-20', load: 180, contact: '陈宇宁', contactTitle: '后勤主管', phone: '137-10109664' },
+          { id: 14, name: '新星塑料厂', type: '工业', x: .78, y: .79, status: 'tovisit', last: '—', load: 0, contact: '孙家豪', contactTitle: '动力车间主任', phone: '152-10117825' },
+          { id: 15, name: '富民农贸市场', type: '商业', x: .50, y: .36, status: 'tovisit', last: '—', load: 0, contact: '罗建国', contactTitle: '物业经理', phone: '156-10125986' },
         ],
       },
       {
@@ -10376,16 +10397,16 @@ init();
           planned: [[[.02, .52], [.14, .50], [.24, .56]], [[.88, .30], [.94, .42], [.96, .58]]],
         },
         customers: [
-          { id: 301, name: '曲阜圣源酒业', type: '工业', x: .18, y: .30, status: 'follow', last: '7-26', load: 900 },
-          { id: 302, name: '尼山文旅酒店', type: '商业', x: .40, y: .52, status: 'developed', last: '7-22', load: 260 },
-          { id: 303, name: '曲阜电缆厂', type: '工业', x: .66, y: .38, status: 'building', last: '7-30', load: 1800 },
-          { id: 304, name: '鲁城机械加工', type: '工业', x: .80, y: .70, status: 'stalled', last: '5-24', load: 0 },
-          { id: 305, name: '石门山食品厂', type: '工业', x: .30, y: .76, status: 'tovisit', last: '—', load: 0 },
-          { id: 306, name: '高铁站商务酒店', type: '商业', x: .58, y: .82, status: 'follow', last: '7-25', load: 420 },
-          { id: 307, name: '书院中学食堂', type: '公福', x: .50, y: .22, status: 'tovisit', last: '—', load: 0 },
-          { id: 308, name: '东宏管业', type: '工业', x: .88, y: .44, status: 'follow', last: '7-28', load: 1500 },
-          { id: 309, name: '明故城商业街', type: '商业', x: .14, y: .60, status: 'nointent', last: '5-10', load: 0 },
-          { id: 310, name: '小雪镇玻璃制品', type: '工业', x: .72, y: .88, status: 'building', last: '7-31', load: 1100 },
+          { id: 301, name: '曲阜圣源酒业', type: '工业', x: .18, y: .30, status: 'follow', owner: '张三', last: '7-26', load: 900, contact: '徐启铭', contactTitle: '生产副总', phone: '186-12460032' },
+          { id: 302, name: '尼山文旅酒店', type: '商业', x: .40, y: .52, status: 'developed', owner: '王明', last: '7-22', load: 260, contact: '林立鹏', contactTitle: '物业经理', phone: '178-12468193' },
+          { id: 303, name: '曲阜电缆厂', type: '工业', x: .66, y: .38, status: ['follow', 'building'], owner: '李华', last: '7-30', load: 1800, contact: '唐泽宇', contactTitle: '车间主任', phone: '135-12476354' },
+          { id: 304, name: '鲁城机械加工', type: '工业', x: .80, y: .70, status: 'stalled', last: '5-24', load: 0, contact: '李婉婷', contactTitle: '总经理', phone: '150-12484515' },
+          { id: 305, name: '石门山食品厂', type: '工业', x: .30, y: .76, status: 'tovisit', last: '—', load: 0, contact: '周秀敏', contactTitle: '安环主管', phone: '153-12492676' },
+          { id: 306, name: '高铁站商务酒店', type: '商业', x: .58, y: .82, status: 'follow', owner: '李工', last: '7-25', load: 420, contact: '郭思远', contactTitle: '采购经理', phone: '158-12500837' },
+          { id: 307, name: '书院中学食堂', type: '公福', x: .50, y: .22, status: 'tovisit', last: '—', load: 0, contact: '谢书豪', contactTitle: '总务科长', phone: '176-12508998' },
+          { id: 308, name: '东宏管业', type: '工业', x: .88, y: .44, status: 'follow', owner: '张三', last: '7-28', load: 1500, contact: '曹晓静', contactTitle: '采购经理', phone: '187-12517159' },
+          { id: 309, name: '明故城商业街', type: '商业', x: .14, y: .60, status: 'nointent', last: '5-10', load: 0, contact: '赵天佑', contactTitle: '物业经理', phone: '138-12525320' },
+          { id: 310, name: '小雪镇玻璃制品', type: '工业', x: .72, y: .88, status: 'building', owner: '李华', last: '7-31', load: 1100, contact: '朱静怡', contactTitle: '动力车间主任', phone: '136-12533481' },
         ],
       },
       {
@@ -10397,18 +10418,18 @@ init();
           planned: [[[.02, .30], [.14, .28], [.22, .34]], [[.84, .78], [.92, .86], [.96, .94]]],
         },
         customers: [
-          { id: 201, name: '华晟精密制造', type: '工业', x: .22, y: .28, status: 'developed', last: '7-29', load: 4200 },
-          { id: 202, name: '邹城煤矿机械厂', type: '工业', x: .48, y: .16, status: 'follow', last: '7-27', load: 1600 },
-          { id: 203, name: '孟子湖大酒店', type: '商业', x: .36, y: .60, status: 'developed', last: '7-24', load: 340 },
-          { id: 204, name: '唐村食品加工', type: '工业', x: .66, y: .44, status: 'follow', last: '7-26', load: 780 },
-          { id: 205, name: '兖矿东滩选煤', type: '工业', x: .80, y: .22, status: 'building', last: '7-31', load: 2600 },
-          { id: 206, name: '太平镇玻璃厂', type: '工业', x: .86, y: .74, status: 'stalled', last: '5-28', load: 0 },
-          { id: 207, name: '邹城一中新校区食堂', type: '公福', x: .14, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 208, name: '北宿精细化工', type: '工业', x: .62, y: .86, status: 'tovisit', last: '—', load: 0 },
-          { id: 209, name: '钢山街道商业综合体', type: '商业', x: .30, y: .44, status: 'follow', last: '7-25', load: 620 },
-          { id: 210, name: '中心店镇铸造厂', type: '工业', x: .76, y: .60, status: 'building', last: '7-30', load: 1900 },
-          { id: 211, name: '石墙镇建材厂', type: '工业', x: .10, y: .40, status: 'nointent', last: '5-15', load: 0 },
-          { id: 212, name: '邹城人民医院食堂', type: '公福', x: .52, y: .70, status: 'tovisit', last: '—', load: 0 },
+          { id: 201, name: '华晟精密制造', type: '工业', x: .22, y: .28, status: 'developed', owner: '李工', last: '7-29', load: 4200, contact: '王振华', contactTitle: '安环主管', phone: '188-11643932' },
+          { id: 202, name: '邹城煤矿机械厂', type: '工业', x: .48, y: .16, status: 'follow', owner: '刘经理', last: '7-27', load: 1600, contact: '黄博文', contactTitle: '设备科长', phone: '139-11652093' },
+          { id: 203, name: '孟子湖大酒店', type: '商业', x: .36, y: .60, status: 'developed', owner: '张三', last: '7-24', load: 340, contact: '胡伟东', contactTitle: '店长', phone: '137-11660254' },
+          { id: 204, name: '唐村食品加工', type: '工业', x: .66, y: .44, status: 'follow', owner: '王明', last: '7-26', load: 780, contact: '梁国庆', contactTitle: '采购经理', phone: '152-11668415' },
+          { id: 205, name: '兖矿东滩选煤', type: '工业', x: .80, y: .22, status: 'building', owner: '李华', last: '7-31', load: 2600, contact: '邓梓涵', contactTitle: '生产副总', phone: '156-11676576' },
+          { id: 206, name: '太平镇玻璃厂', type: '工业', x: .86, y: .74, status: 'stalled', last: '5-28', load: 0, contact: '杨明辉', contactTitle: '动力车间主任', phone: '186-11684737' },
+          { id: 207, name: '邹城一中新校区食堂', type: '公福', x: .14, y: .74, status: 'tovisit', last: '—', load: 0, contact: '马立新', contactTitle: '总务科长', phone: '178-11692898' },
+          { id: 208, name: '北宿精细化工', type: '工业', x: .62, y: .86, status: 'tovisit', last: '—', load: 0, contact: '高晨曦', contactTitle: '总经理', phone: '135-11701059' },
+          { id: 209, name: '钢山街道商业综合体', type: '商业', x: .30, y: .44, status: 'follow', owner: '刘经理', last: '7-25', load: 620, contact: '韩海涛', contactTitle: '后勤主管', phone: '150-11709220' },
+          { id: 210, name: '中心店镇铸造厂', type: '工业', x: .76, y: .60, status: 'building', owner: '张三', last: '7-30', load: 1900, contact: '刘俊帆', contactTitle: '设备科长', phone: '153-11717381' },
+          { id: 211, name: '石墙镇建材厂', type: '工业', x: .10, y: .40, status: 'nointent', last: '5-15', load: 0, contact: '徐子轩', contactTitle: '厂长', phone: '158-11725542' },
+          { id: 212, name: '邹城人民医院食堂', type: '公福', x: .52, y: .70, status: 'tovisit', last: '—', load: 0, contact: '林志强', contactTitle: '总务科长', phone: '176-11733703' },
         ],
       },
     ],
@@ -10422,14 +10443,14 @@ init();
           planned: [[[.02, .50], [.16, .48], [.26, .54]], [[.86, .28], [.94, .40], [.96, .56]]],
         },
         customers: [
-          { id: 101, name: '恒信纺织厂', type: '工业', x: .18, y: .28, status: 'follow', last: '7-29', load: 1200 },
-          { id: 102, name: '华骏汽配产业园', type: '工业', x: .58, y: .40, status: 'building', last: '7-30', load: 3500 },
-          { id: 103, name: '福永电子产业园', type: '工业', x: .34, y: .66, status: 'tovisit', last: '—', load: 0 },
-          { id: 104, name: '沙井精密五金', type: '工业', x: .72, y: .58, status: 'follow', last: '7-26', load: 900 },
-          { id: 105, name: '西乡智造科技', type: '工业', x: .82, y: .24, status: 'stalled', last: '5-22', load: 0 },
-          { id: 106, name: '宝安中心商业街', type: '商业', x: .44, y: .78, status: 'tovisit', last: '—', load: 0 },
-          { id: 107, name: '石岩湖科技园', type: '工业', x: .22, y: .84, status: 'building', last: '7-31', load: 1600 },
-          { id: 108, name: '新安街道综合体', type: '商业', x: .54, y: .16, status: 'follow', last: '7-27', load: 520 },
+          { id: 101, name: '恒信纺织厂', type: '工业', x: .18, y: .28, status: 'follow', owner: '陈刚', last: '7-29', load: 1200, contact: '郑启铭', contactTitle: '生产副总', phone: '136-10827832' },
+          { id: 102, name: '华骏汽配产业园', type: '工业', x: .58, y: .40, status: 'building', owner: '赵调度', last: '7-30', load: 3500, contact: '冯立鹏', contactTitle: '动力车间主任', phone: '151-10835993' },
+          { id: 103, name: '福永电子产业园', type: '工业', x: .34, y: .66, status: 'tovisit', last: '—', load: 0, contact: '陈泽宇', contactTitle: '车间主任', phone: '155-10844154' },
+          { id: 104, name: '沙井精密五金', type: '工业', x: .72, y: .58, status: 'follow', owner: '刘经理', last: '7-26', load: 900, contact: '孙婉婷', contactTitle: '总经理', phone: '159-10852315' },
+          { id: 105, name: '西乡智造科技', type: '工业', x: .82, y: .24, status: 'stalled', last: '5-22', load: 0, contact: '罗秀敏', contactTitle: '安环主管', phone: '177-10860476' },
+          { id: 106, name: '宝安中心商业街', type: '商业', x: .44, y: .78, status: 'tovisit', last: '—', load: 0, contact: '许思远', contactTitle: '物业经理', phone: '188-10868637' },
+          { id: 107, name: '石岩湖科技园', type: '工业', x: .22, y: .84, status: 'building', owner: '李华', last: '7-31', load: 1600, contact: '张书豪', contactTitle: '厂长', phone: '139-10876798' },
+          { id: 108, name: '新安街道综合体', type: '商业', x: .54, y: .16, status: 'follow', owner: '陈刚', last: '7-27', load: 520, contact: '吴晓静', contactTitle: '行政经理', phone: '137-10884959' },
         ],
       },
       {
@@ -10440,13 +10461,13 @@ init();
           planned: [[[.02, .46], [.14, .44], [.24, .50]], [[.88, .44], [.94, .56], [.96, .70]]],
         },
         customers: [
-          { id: 111, name: '龙岗电子科技', type: '工业', x: .24, y: .34, status: 'developed', last: '7-24', load: 1800 },
-          { id: 112, name: '大运软件小镇', type: '商业', x: .52, y: .52, status: 'follow', last: '7-28', load: 640 },
-          { id: 113, name: '坂田华为配套', type: '工业', x: .72, y: .30, status: 'follow', last: '7-26', load: 2200 },
-          { id: 114, name: '横岗眼镜城', type: '商业', x: .36, y: .72, status: 'tovisit', last: '—', load: 0 },
-          { id: 115, name: '平湖物流园', type: '工业', x: .84, y: .62, status: 'building', last: '7-30', load: 1400 },
-          { id: 116, name: '布吉五金加工厂', type: '工业', x: .14, y: .62, status: 'stalled', last: '5-19', load: 0 },
-          { id: 117, name: '坪地低碳产业园', type: '工业', x: .62, y: .86, status: 'tovisit', last: '—', load: 0 },
+          { id: 111, name: '龙岗电子科技', type: '工业', x: .24, y: .34, status: 'developed', owner: '刘经理', last: '7-24', load: 1800, contact: '王宏磊', contactTitle: '车间主任', phone: '186-10909442' },
+          { id: 112, name: '大运软件小镇', type: '商业', x: .52, y: .52, status: 'follow', owner: '张三', last: '7-28', load: 640, contact: '黄嘉伟', contactTitle: '店长', phone: '178-10917603' },
+          { id: 113, name: '坂田华为配套', type: '工业', x: .72, y: .30, status: 'follow', owner: '王明', last: '7-26', load: 2200, contact: '胡浩然', contactTitle: '安环主管', phone: '135-10925764' },
+          { id: 114, name: '横岗眼镜城', type: '商业', x: .36, y: .72, status: 'tovisit', last: '—', load: 0, contact: '梁志峰', contactTitle: '运营总监', phone: '150-10933925' },
+          { id: 115, name: '平湖物流园', type: '工业', x: .84, y: .62, status: 'building', owner: '陈刚', last: '7-30', load: 1400, contact: '邓亚楠', contactTitle: '厂长', phone: '153-10942086' },
+          { id: 116, name: '布吉五金加工厂', type: '工业', x: .14, y: .62, status: 'stalled', last: '5-19', load: 0, contact: '杨俊杰', contactTitle: '采购经理', phone: '158-10950247' },
+          { id: 117, name: '坪地低碳产业园', type: '工业', x: .62, y: .86, status: 'tovisit', last: '—', load: 0, contact: '马勇刚', contactTitle: '生产副总', phone: '176-10958408' },
         ],
       },
       {
@@ -10457,12 +10478,12 @@ init();
           planned: [[[.02, .24], [.14, .22], [.24, .28]], [[.90, .60], [.96, .72], [.98, .84]]],
         },
         customers: [
-          { id: 121, name: '望江宾馆', type: '商业', x: .30, y: .30, status: 'developed', last: '7-20', load: 180 },
-          { id: 122, name: '深圳湾科技园', type: '商业', x: .56, y: .44, status: 'follow', last: '7-27', load: 1200 },
-          { id: 123, name: '西丽大学城食堂', type: '公福', x: .22, y: .64, status: 'tovisit', last: '—', load: 0 },
-          { id: 124, name: '前海金融中心', type: '商业', x: .70, y: .62, status: 'building', last: '7-31', load: 2100 },
-          { id: 125, name: '蛇口网谷产业园', type: '工业', x: .84, y: .34, status: 'follow', last: '7-25', load: 780 },
-          { id: 126, name: '南头古城商业街', type: '商业', x: .42, y: .78, status: 'nointent', last: '5-12', load: 0 },
+          { id: 121, name: '望江宾馆', type: '商业', x: .30, y: .30, status: 'developed', owner: '李华', last: '7-20', load: 180, contact: '徐振华', contactTitle: '运营总监', phone: '151-10991052' },
+          { id: 122, name: '深圳湾科技园', type: '商业', x: .56, y: .44, status: 'follow', owner: '陈刚', last: '7-27', load: 1200, contact: '林博文', contactTitle: '行政经理', phone: '155-10999213' },
+          { id: 123, name: '西丽大学城食堂', type: '公福', x: .22, y: .64, status: 'tovisit', last: '—', load: 0, contact: '唐伟东', contactTitle: '总务科长', phone: '159-11007374' },
+          { id: 124, name: '前海金融中心', type: '商业', x: .70, y: .62, status: 'building', owner: '李工', last: '7-31', load: 2100, contact: '李国庆', contactTitle: '采购经理', phone: '177-11015535' },
+          { id: 125, name: '蛇口网谷产业园', type: '工业', x: .84, y: .34, status: 'follow', owner: '刘经理', last: '7-25', load: 780, contact: '周梓涵', contactTitle: '生产副总', phone: '188-11023696' },
+          { id: 126, name: '南头古城商业街', type: '商业', x: .42, y: .78, status: 'nointent', last: '5-12', load: 0, contact: '郭明辉', contactTitle: '店长', phone: '139-11031857' },
         ],
       },
     ],
@@ -10476,12 +10497,12 @@ init();
           planned: [[[.02, .52], [.14, .50], [.24, .56]], [[.88, .30], [.94, .44], [.96, .60]]],
         },
         customers: [
-          { id: 131, name: '广州汽车零部件', type: '工业', x: .22, y: .30, status: 'developed', last: '7-24', load: 2600 },
-          { id: 132, name: '珠江新城商务楼', type: '商业', x: .54, y: .46, status: 'follow', last: '7-28', load: 1400 },
-          { id: 133, name: '天河软件园', type: '商业', x: .74, y: .34, status: 'building', last: '7-31', load: 1900 },
-          { id: 134, name: '石牌餐饮街', type: '商业', x: .38, y: .72, status: 'tovisit', last: '—', load: 0 },
-          { id: 135, name: '员村工业园', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-21', load: 0 },
-          { id: 136, name: '五山高校食堂', type: '公福', x: .16, y: .62, status: 'tovisit', last: '—', load: 0 },
+          { id: 131, name: '广州汽车零部件', type: '工业', x: .22, y: .30, status: 'developed', owner: '李工', last: '7-24', load: 2600, contact: '郑子轩', contactTitle: '厂长', phone: '178-11072662' },
+          { id: 132, name: '珠江新城商务楼', type: '商业', x: .54, y: .46, status: 'follow', owner: '刘经理', last: '7-28', load: 1400, contact: '冯志强', contactTitle: '后勤主管', phone: '135-11080823' },
+          { id: 133, name: '天河软件园', type: '商业', x: .74, y: .34, status: 'building', owner: '张三', last: '7-31', load: 1900, contact: '陈宇宁', contactTitle: '店长', phone: '150-11088984' },
+          { id: 134, name: '石牌餐饮街', type: '商业', x: .38, y: .72, status: 'tovisit', last: '—', load: 0, contact: '孙家豪', contactTitle: '物业经理', phone: '153-11097145' },
+          { id: 135, name: '员村工业园', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-21', load: 0, contact: '罗建国', contactTitle: '车间主任', phone: '158-11105306' },
+          { id: 136, name: '五山高校食堂', type: '公福', x: .16, y: .62, status: 'tovisit', last: '—', load: 0, contact: '许浩宇', contactTitle: '总务科长', phone: '176-11113467' },
         ],
       },
       {
@@ -10492,11 +10513,11 @@ init();
           planned: [[[.02, .48], [.14, .46], [.24, .52]], [[.88, .48], [.94, .60], [.96, .74]]],
         },
         customers: [
-          { id: 141, name: '番禺食品加工', type: '工业', x: .26, y: .32, status: 'developed', last: '7-23', load: 1600 },
-          { id: 142, name: '大学城商业中心', type: '商业', x: .54, y: .48, status: 'follow', last: '7-27', load: 900 },
-          { id: 143, name: '南站商务区酒店', type: '商业', x: .74, y: .36, status: 'building', last: '7-30', load: 1300 },
-          { id: 144, name: '大石机械配件厂', type: '工业', x: .40, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 145, name: '钟村纺织印染', type: '工业', x: .84, y: .66, status: 'stalled', last: '5-18', load: 0 },
+          { id: 141, name: '番禺食品加工', type: '工业', x: .26, y: .32, status: 'developed', owner: '王明', last: '7-23', load: 1600, contact: '王启铭', contactTitle: '生产副总', phone: '155-11154272' },
+          { id: 142, name: '大学城商业中心', type: '商业', x: .54, y: .48, status: 'follow', owner: '李华', last: '7-27', load: 900, contact: '黄立鹏', contactTitle: '运营总监', phone: '159-11162433' },
+          { id: 143, name: '南站商务区酒店', type: '商业', x: .74, y: .36, status: 'building', owner: '陈刚', last: '7-30', load: 1300, contact: '胡泽宇', contactTitle: '行政经理', phone: '177-11170594' },
+          { id: 144, name: '大石机械配件厂', type: '工业', x: .40, y: .74, status: 'tovisit', last: '—', load: 0, contact: '梁婉婷', contactTitle: '总经理', phone: '188-11178755' },
+          { id: 145, name: '钟村纺织印染', type: '工业', x: .84, y: .66, status: 'stalled', last: '5-18', load: 0, contact: '邓秀敏', contactTitle: '安环主管', phone: '139-11186916' },
         ],
       },
       {
@@ -10507,11 +10528,11 @@ init();
           planned: [[[.02, .56], [.14, .54], [.24, .60]], [[.86, .34], [.92, .48], [.96, .64]]],
         },
         customers: [
-          { id: 151, name: '黄埔化工', type: '工业', x: .24, y: .34, status: 'follow', last: '7-26', load: 3200 },
-          { id: 152, name: '科学城生物医药', type: '工业', x: .56, y: .44, status: 'building', last: '7-31', load: 2400 },
-          { id: 153, name: '长洲岛物流仓储', type: '工业', x: .34, y: .72, status: 'tovisit', last: '—', load: 0 },
-          { id: 154, name: '大沙地商业广场', type: '商业', x: .76, y: .60, status: 'developed', last: '7-22', load: 720 },
-          { id: 155, name: '云埔工业区食堂', type: '公福', x: .84, y: .28, status: 'tovisit', last: '—', load: 0 },
+          { id: 151, name: '黄埔化工', type: '工业', x: .24, y: .34, status: 'follow', owner: '赵调度', last: '7-26', load: 3200, contact: '徐宏磊', contactTitle: '车间主任', phone: '135-11235882' },
+          { id: 152, name: '科学城生物医药', type: '工业', x: .56, y: .44, status: 'building', owner: '李工', last: '7-31', load: 2400, contact: '林嘉伟', contactTitle: '总经理', phone: '150-11244043' },
+          { id: 153, name: '长洲岛物流仓储', type: '工业', x: .34, y: .72, status: 'tovisit', last: '—', load: 0, contact: '唐浩然', contactTitle: '安环主管', phone: '153-11252204' },
+          { id: 154, name: '大沙地商业广场', type: '商业', x: .76, y: .60, status: 'developed', owner: '张三', last: '7-22', load: 720, contact: '李志峰', contactTitle: '店长', phone: '158-11260365' },
+          { id: 155, name: '云埔工业区食堂', type: '公福', x: .84, y: .28, status: 'tovisit', last: '—', load: 0, contact: '周亚楠', contactTitle: '总务科长', phone: '176-11268526' },
         ],
       },
     ],
@@ -10525,12 +10546,12 @@ init();
           planned: [[[.02, .54], [.14, .52], [.24, .58]], [[.88, .32], [.94, .46], [.96, .62]]],
         },
         customers: [
-          { id: 161, name: '松山湖精密制造', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 2800 },
-          { id: 162, name: '华为松研所配套', type: '工业', x: .56, y: .46, status: 'follow', last: '7-28', load: 3600 },
-          { id: 163, name: '大岭山家具厂', type: '工业', x: .36, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 164, name: '寮步汽车城', type: '商业', x: .78, y: .58, status: 'developed', last: '7-24', load: 860 },
-          { id: 165, name: '大朗毛织产业园', type: '工业', x: .84, y: .30, status: 'stalled', last: '5-20', load: 0 },
-          { id: 166, name: '生态园食堂', type: '公福', x: .16, y: .62, status: 'tovisit', last: '—', load: 0 },
+          { id: 161, name: '松山湖精密制造', type: '工业', x: .26, y: .32, status: 'building', owner: '张三', last: '7-30', load: 2800, contact: '郑振华', contactTitle: '安环主管', phone: '159-11317492' },
+          { id: 162, name: '华为松研所配套', type: '工业', x: .56, y: .46, status: 'follow', owner: '王明', last: '7-28', load: 3600, contact: '冯博文', contactTitle: '设备科长', phone: '177-11325653' },
+          { id: 163, name: '大岭山家具厂', type: '工业', x: .36, y: .74, status: 'tovisit', last: '—', load: 0, contact: '陈伟东', contactTitle: '厂长', phone: '188-11333814' },
+          { id: 164, name: '寮步汽车城', type: '商业', x: .78, y: .58, status: 'developed', owner: '陈刚', last: '7-24', load: 860, contact: '孙国庆', contactTitle: '行政经理', phone: '139-11341975' },
+          { id: 165, name: '大朗毛织产业园', type: '工业', x: .84, y: .30, status: 'stalled', last: '5-20', load: 0, contact: '罗梓涵', contactTitle: '生产副总', phone: '137-11350136' },
+          { id: 166, name: '生态园食堂', type: '公福', x: .16, y: .62, status: 'tovisit', last: '—', load: 0, contact: '许明辉', contactTitle: '总务科长', phone: '152-11358297' },
         ],
       },
       {
@@ -10541,11 +10562,11 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .46], [.94, .58], [.96, .72]]],
         },
         customers: [
-          { id: 171, name: '虎门服装加工厂', type: '工业', x: .28, y: .34, status: 'developed', last: '7-22', load: 1500 },
-          { id: 172, name: '黄河时装城', type: '商业', x: .54, y: .50, status: 'follow', last: '7-27', load: 980 },
-          { id: 173, name: '虎门电商产业园', type: '商业', x: .72, y: .36, status: 'building', last: '7-31', load: 1700 },
-          { id: 174, name: '威远码头仓储', type: '工业', x: .38, y: .76, status: 'tovisit', last: '—', load: 0 },
-          { id: 175, name: '路东工业区五金', type: '工业', x: .84, y: .68, status: 'nointent', last: '5-14', load: 0 },
+          { id: 171, name: '虎门服装加工厂', type: '工业', x: .28, y: .34, status: 'developed', owner: '陈刚', last: '7-22', load: 1500, contact: '王子轩', contactTitle: '厂长', phone: '150-11399102' },
+          { id: 172, name: '黄河时装城', type: '商业', x: .54, y: .50, status: 'follow', owner: '赵调度', last: '7-27', load: 980, contact: '黄志强', contactTitle: '总经理', phone: '153-11407263' },
+          { id: 173, name: '虎门电商产业园', type: '商业', x: .72, y: .36, status: 'building', owner: '李工', last: '7-31', load: 1700, contact: '胡宇宁', contactTitle: '采购经理', phone: '158-11415424' },
+          { id: 174, name: '威远码头仓储', type: '工业', x: .38, y: .76, status: 'tovisit', last: '—', load: 0, contact: '梁家豪', contactTitle: '动力车间主任', phone: '176-11423585' },
+          { id: 175, name: '路东工业区五金', type: '工业', x: .84, y: .68, status: 'nointent', last: '5-14', load: 0, contact: '邓建国', contactTitle: '车间主任', phone: '187-11431746' },
         ],
       },
       {
@@ -10556,11 +10577,11 @@ init();
           planned: [[[.02, .22], [.14, .20], [.24, .26]], [[.88, .62], [.94, .74], [.96, .86]]],
         },
         customers: [
-          { id: 181, name: '常平电子元件厂', type: '工业', x: .26, y: .34, status: 'follow', last: '7-26', load: 1100 },
-          { id: 182, name: '常平铁路物流园', type: '工业', x: .56, y: .50, status: 'building', last: '7-30', load: 2200 },
-          { id: 183, name: '土塘商业广场', type: '商业', x: .36, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 184, name: '司马工业区食堂', type: '公福', x: .76, y: .62, status: 'tovisit', last: '—', load: 0 },
-          { id: 185, name: '漱新五金制品', type: '工业', x: .84, y: .28, status: 'stalled', last: '5-23', load: 0 },
+          { id: 181, name: '常平电子元件厂', type: '工业', x: .26, y: .34, status: 'follow', owner: '刘经理', last: '7-26', load: 1100, contact: '徐启铭', contactTitle: '生产副总', phone: '177-11480712' },
+          { id: 182, name: '常平铁路物流园', type: '工业', x: .56, y: .50, status: 'building', owner: '张三', last: '7-30', load: 2200, contact: '林立鹏', contactTitle: '动力车间主任', phone: '188-11488873' },
+          { id: 183, name: '土塘商业广场', type: '商业', x: .36, y: .74, status: 'tovisit', last: '—', load: 0, contact: '唐泽宇', contactTitle: '物业经理', phone: '139-11497034' },
+          { id: 184, name: '司马工业区食堂', type: '公福', x: .76, y: .62, status: 'tovisit', last: '—', load: 0, contact: '李婉婷', contactTitle: '总务科长', phone: '137-11505195' },
+          { id: 185, name: '漱新五金制品', type: '工业', x: .84, y: .28, status: 'stalled', last: '5-23', load: 0, contact: '周秀敏', contactTitle: '安环主管', phone: '152-11513356' },
         ],
       },
     ],
@@ -10574,11 +10595,11 @@ init();
           planned: [[[.02, .56], [.14, .54], [.24, .60]], [[.88, .34], [.94, .48], [.96, .64]]],
         },
         customers: [
-          { id: 191, name: '顺德家电制造', type: '工业', x: .26, y: .34, status: 'follow', last: '7-27', load: 2400 },
-          { id: 192, name: '美的工业园食堂', type: '公福', x: .56, y: .48, status: 'developed', last: '7-21', load: 1100 },
-          { id: 193, name: '北滘家电配套', type: '工业', x: .74, y: .34, status: 'building', last: '7-31', load: 1900 },
-          { id: 194, name: '大良商业步行街', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 195, name: '容桂五金老厂', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-17', load: 0 },
+          { id: 191, name: '顺德家电制造', type: '工业', x: .26, y: .34, status: 'follow', owner: '李华', last: '7-27', load: 2400, contact: '郑宏磊', contactTitle: '车间主任', phone: '153-11562322' },
+          { id: 192, name: '美的工业园食堂', type: '公福', x: .56, y: .48, status: 'developed', owner: '陈刚', last: '7-21', load: 1100, contact: '冯嘉伟', contactTitle: '总务科长', phone: '158-11570483' },
+          { id: 193, name: '北滘家电配套', type: '工业', x: .74, y: .34, status: 'building', owner: '赵调度', last: '7-31', load: 1900, contact: '陈浩然', contactTitle: '安环主管', phone: '176-11578644' },
+          { id: 194, name: '大良商业步行街', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '孙志峰', contactTitle: '采购经理', phone: '187-11586805' },
+          { id: 195, name: '容桂五金老厂', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-17', load: 0, contact: '罗亚楠', contactTitle: '厂长', phone: '138-11594966' },
         ],
       },
       {
@@ -10589,11 +10610,11 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .48], [.94, .60], [.96, .74]]],
         },
         customers: [
-          { id: 196, name: '南海铝业', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 3000 },
-          { id: 197, name: '千灯湖商务区', type: '商业', x: .54, y: .48, status: 'follow', last: '7-27', load: 1300 },
-          { id: 198, name: '狮山智造产业园', type: '工业', x: .74, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 199, name: '西樵纺织厂', type: '工业', x: .40, y: .74, status: 'developed', last: '7-23', load: 880 },
-          { id: 200, name: '丹灶物流中心', type: '工业', x: .84, y: .66, status: 'nointent', last: '5-16', load: 0 },
+          { id: 196, name: '南海铝业', type: '工业', x: .26, y: .32, status: 'building', owner: '张三', last: '7-30', load: 3000, contact: '许俊杰', contactTitle: '采购经理', phone: '136-11603127' },
+          { id: 197, name: '千灯湖商务区', type: '商业', x: .54, y: .48, status: 'follow', owner: '王明', last: '7-27', load: 1300, contact: '张勇刚', contactTitle: '物业经理', phone: '151-11611288' },
+          { id: 198, name: '狮山智造产业园', type: '工业', x: .74, y: .36, status: 'tovisit', last: '—', load: 0, contact: '吴春生', contactTitle: '动力车间主任', phone: '155-11619449' },
+          { id: 199, name: '西樵纺织厂', type: '工业', x: .40, y: .74, status: 'developed', owner: '陈刚', last: '7-23', load: 880, contact: '何雅婷', contactTitle: '车间主任', phone: '159-11627610' },
+          { id: 200, name: '丹灶物流中心', type: '工业', x: .84, y: .66, status: 'nointent', last: '5-16', load: 0, contact: '宋建军', contactTitle: '总经理', phone: '177-11635771' },
         ],
       },
     ],
@@ -10607,10 +10628,10 @@ init();
           planned: [[[.02, .54], [.14, .52], [.24, .58]], [[.88, .36], [.94, .50], [.96, .66]]],
         },
         customers: [
-          { id: 221, name: '香洲酒店', type: '商业', x: .26, y: .34, status: 'developed', last: '7-20', load: 260 },
-          { id: 222, name: '珠海格力配套', type: '工业', x: .56, y: .48, status: 'follow', last: '7-26', load: 2100 },
-          { id: 223, name: '唐家湾大学城食堂', type: '公福', x: .36, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 224, name: '南屏科技工业园', type: '工业', x: .78, y: .60, status: 'building', last: '7-31', load: 1600 },
+          { id: 221, name: '香洲酒店', type: '商业', x: .26, y: .34, status: 'developed', owner: '赵调度', last: '7-20', load: 260, contact: '郑启铭', contactTitle: '总经理', phone: '139-11807152' },
+          { id: 222, name: '珠海格力配套', type: '工业', x: .56, y: .48, status: 'follow', owner: '李工', last: '7-26', load: 2100, contact: '冯立鹏', contactTitle: '动力车间主任', phone: '137-11815313' },
+          { id: 223, name: '唐家湾大学城食堂', type: '公福', x: .36, y: .74, status: 'tovisit', last: '—', load: 0, contact: '陈泽宇', contactTitle: '总务科长', phone: '152-11823474' },
+          { id: 224, name: '南屏科技工业园', type: '工业', x: .78, y: .60, status: 'building', owner: '张三', last: '7-31', load: 1600, contact: '孙婉婷', contactTitle: '总经理', phone: '156-11831635' },
         ],
       },
       {
@@ -10621,10 +10642,10 @@ init();
           planned: [[[.02, .48], [.14, .46], [.24, .52]], [[.88, .44], [.94, .56], [.96, .70]]],
         },
         customers: [
-          { id: 225, name: '金湾生物医药', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 2500 },
-          { id: 226, name: '航空新城商务楼', type: '商业', x: .54, y: .48, status: 'follow', last: '7-27', load: 900 },
-          { id: 227, name: '三灶工业区食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 228, name: '平沙电子元件厂', type: '工业', x: .78, y: .60, status: 'tovisit', last: '—', load: 0 },
+          { id: 225, name: '金湾生物医药', type: '工业', x: .26, y: .32, status: 'building', owner: '王明', last: '7-30', load: 2500, contact: '罗秀敏', contactTitle: '安环主管', phone: '186-11839796' },
+          { id: 226, name: '航空新城商务楼', type: '商业', x: .54, y: .48, status: 'follow', owner: '李华', last: '7-27', load: 900, contact: '许思远', contactTitle: '运营总监', phone: '178-11847957' },
+          { id: 227, name: '三灶工业区食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '张书豪', contactTitle: '总务科长', phone: '135-11856118' },
+          { id: 228, name: '平沙电子元件厂', type: '工业', x: .78, y: .60, status: 'tovisit', last: '—', load: 0, contact: '吴晓静', contactTitle: '采购经理', phone: '150-11864279' },
         ],
       },
     ],
@@ -10638,11 +10659,11 @@ init();
           planned: [[[.02, .54], [.14, .52], [.24, .58]], [[.88, .32], [.94, .46], [.96, .62]]],
         },
         customers: [
-          { id: 231, name: '滨江电子', type: '工业', x: .26, y: .34, status: 'follow', last: '7-27', load: 1800 },
-          { id: 232, name: '网易杭州园区', type: '商业', x: .56, y: .46, status: 'developed', last: '7-21', load: 1300 },
-          { id: 233, name: '长河高新技术园', type: '工业', x: .74, y: .32, status: 'building', last: '7-31', load: 2100 },
-          { id: 234, name: '星光大道商业街', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 235, name: '浦沿五金厂', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-18', load: 0 },
+          { id: 231, name: '滨江电子', type: '工业', x: .26, y: .34, status: 'follow', owner: '张三', last: '7-27', load: 1800, contact: '王宏磊', contactTitle: '车间主任', phone: '176-11888762' },
+          { id: 232, name: '网易杭州园区', type: '商业', x: .56, y: .46, status: 'developed', owner: '王明', last: '7-21', load: 1300, contact: '黄嘉伟', contactTitle: '物业经理', phone: '187-11896923' },
+          { id: 233, name: '长河高新技术园', type: '工业', x: .74, y: .32, status: 'building', owner: '李华', last: '7-31', load: 2100, contact: '胡浩然', contactTitle: '安环主管', phone: '138-11905084' },
+          { id: 234, name: '星光大道商业街', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '梁志峰', contactTitle: '行政经理', phone: '136-11913245' },
+          { id: 235, name: '浦沿五金厂', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-18', load: 0, contact: '邓亚楠', contactTitle: '厂长', phone: '151-11921406' },
         ],
       },
       {
@@ -10653,11 +10674,11 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .46], [.94, .58], [.96, .72]]],
         },
         customers: [
-          { id: 236, name: '未来科技城', type: '商业', x: .26, y: .32, status: 'building', last: '7-30', load: 2600 },
-          { id: 237, name: '余杭生物医药园', type: '工业', x: .54, y: .48, status: 'follow', last: '7-28', load: 1900 },
-          { id: 238, name: '良渚文创园区', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 239, name: '瓶窑装备制造', type: '工业', x: .40, y: .74, status: 'developed', last: '7-22', load: 1200 },
-          { id: 240, name: '仁和街道食堂', type: '公福', x: .84, y: .66, status: 'tovisit', last: '—', load: 0 },
+          { id: 236, name: '未来科技城', type: '商业', x: .26, y: .32, status: 'building', owner: '李工', last: '7-30', load: 2600, contact: '杨俊杰', contactTitle: '采购经理', phone: '155-11929567' },
+          { id: 237, name: '余杭生物医药园', type: '工业', x: .54, y: .48, status: 'follow', owner: '刘经理', last: '7-28', load: 1900, contact: '马勇刚', contactTitle: '生产副总', phone: '159-11937728' },
+          { id: 238, name: '良渚文创园区', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0, contact: '高春生', contactTitle: '店长', phone: '177-11945889' },
+          { id: 239, name: '瓶窑装备制造', type: '工业', x: .40, y: .74, status: 'developed', owner: '王明', last: '7-22', load: 1200, contact: '韩雅婷', contactTitle: '车间主任', phone: '188-11954050' },
+          { id: 240, name: '仁和街道食堂', type: '公福', x: .84, y: .66, status: 'tovisit', last: '—', load: 0, contact: '刘建军', contactTitle: '总务科长', phone: '139-11962211' },
         ],
       },
     ],
@@ -10671,11 +10692,11 @@ init();
           planned: [[[.02, .54], [.14, .52], [.24, .58]], [[.88, .38], [.94, .52], [.96, .68]]],
         },
         customers: [
-          { id: 241, name: '北仑港物流', type: '工业', x: .26, y: .34, status: 'developed', last: '7-23', load: 2800 },
-          { id: 242, name: '宁波海天塑机', type: '工业', x: .56, y: .48, status: 'follow', last: '7-27', load: 2400 },
-          { id: 243, name: '大榭石化配套', type: '工业', x: .74, y: .34, status: 'building', last: '7-31', load: 3200 },
-          { id: 244, name: '小港码头食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 245, name: '柴桥五金加工', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-19', load: 0 },
+          { id: 241, name: '北仑港物流', type: '工业', x: .26, y: .34, status: 'developed', owner: '陈刚', last: '7-23', load: 2800, contact: '徐振华', contactTitle: '安环主管', phone: '137-11970372' },
+          { id: 242, name: '宁波海天塑机', type: '工业', x: .56, y: .48, status: 'follow', owner: '赵调度', last: '7-27', load: 2400, contact: '林博文', contactTitle: '设备科长', phone: '152-11978533' },
+          { id: 243, name: '大榭石化配套', type: '工业', x: .74, y: .34, status: 'building', owner: '李工', last: '7-31', load: 3200, contact: '唐伟东', contactTitle: '厂长', phone: '156-11986694' },
+          { id: 244, name: '小港码头食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '李国庆', contactTitle: '总务科长', phone: '186-11994855' },
+          { id: 245, name: '柴桥五金加工', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-19', load: 0, contact: '周梓涵', contactTitle: '生产副总', phone: '178-12003016' },
         ],
       },
       {
@@ -10686,10 +10707,10 @@ init();
           planned: [[[.02, .48], [.14, .46], [.24, .52]], [[.88, .44], [.94, .56], [.96, .70]]],
         },
         customers: [
-          { id: 246, name: '慈溪小家电', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 1700 },
-          { id: 247, name: '周巷家电配套', type: '工业', x: .54, y: .48, status: 'follow', last: '7-27', load: 1400 },
-          { id: 248, name: '观海卫轴承厂', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 249, name: '浒山商业中心', type: '商业', x: .40, y: .74, status: 'developed', last: '7-22', load: 760 },
+          { id: 246, name: '慈溪小家电', type: '工业', x: .26, y: .32, status: 'building', owner: '王明', last: '7-30', load: 1700, contact: '郭明辉', contactTitle: '动力车间主任', phone: '135-12011177' },
+          { id: 247, name: '周巷家电配套', type: '工业', x: .54, y: .48, status: 'follow', owner: '李华', last: '7-27', load: 1400, contact: '谢立新', contactTitle: '车间主任', phone: '150-12019338' },
+          { id: 248, name: '观海卫轴承厂', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0, contact: '曹晨曦', contactTitle: '总经理', phone: '153-12027499' },
+          { id: 249, name: '浒山商业中心', type: '商业', x: .40, y: .74, status: 'developed', owner: '赵调度', last: '7-22', load: 760, contact: '赵海涛', contactTitle: '总经理', phone: '158-12035660' },
         ],
       },
     ],
@@ -10703,10 +10724,10 @@ init();
           planned: [[[.02, .56], [.14, .54], [.24, .60]], [[.88, .34], [.94, .48], [.96, .64]]],
         },
         customers: [
-          { id: 251, name: '鹿城鞋业', type: '工业', x: .26, y: .34, status: 'follow', last: '7-27', load: 1300 },
-          { id: 252, name: '五马街商业广场', type: '商业', x: .56, y: .48, status: 'developed', last: '7-21', load: 890 },
-          { id: 253, name: '温州正泰电气', type: '工业', x: .74, y: .34, status: 'building', last: '7-31', load: 2200 },
-          { id: 254, name: '双屿物流园', type: '工业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 251, name: '鹿城鞋业', type: '工业', x: .26, y: .34, status: 'follow', owner: '刘经理', last: '7-27', load: 1300, contact: '郑子轩', contactTitle: '厂长', phone: '187-12051982' },
+          { id: 252, name: '五马街商业广场', type: '商业', x: .56, y: .48, status: 'developed', owner: '张三', last: '7-21', load: 890, contact: '冯志强', contactTitle: '店长', phone: '138-12060143' },
+          { id: 253, name: '温州正泰电气', type: '工业', x: .74, y: .34, status: 'building', owner: '王明', last: '7-31', load: 2200, contact: '陈宇宁', contactTitle: '生产副总', phone: '136-12068304' },
+          { id: 254, name: '双屿物流园', type: '工业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '孙家豪', contactTitle: '动力车间主任', phone: '151-12076465' },
         ],
       },
       {
@@ -10717,10 +10738,10 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .46], [.94, .58], [.96, .72]]],
         },
         customers: [
-          { id: 255, name: '乐清电器', type: '工业', x: .26, y: .32, status: 'developed', last: '7-23', load: 1600 },
-          { id: 256, name: '柳市低压电器城', type: '商业', x: .54, y: .48, status: 'follow', last: '7-28', load: 1200 },
-          { id: 257, name: '虹桥电子产业园', type: '工业', x: .72, y: .36, status: 'building', last: '7-31', load: 1900 },
-          { id: 258, name: '北白象食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 255, name: '乐清电器', type: '工业', x: .26, y: .32, status: 'developed', owner: '陈刚', last: '7-23', load: 1600, contact: '罗建国', contactTitle: '车间主任', phone: '155-12084626' },
+          { id: 256, name: '柳市低压电器城', type: '商业', x: .54, y: .48, status: 'follow', owner: '赵调度', last: '7-28', load: 1200, contact: '许浩宇', contactTitle: '总经理', phone: '159-12092787' },
+          { id: 257, name: '虹桥电子产业园', type: '工业', x: .72, y: .36, status: 'building', owner: '李工', last: '7-31', load: 1900, contact: '张梦琪', contactTitle: '安环主管', phone: '177-12100948' },
+          { id: 258, name: '北白象食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0, contact: '吴一鸣', contactTitle: '总务科长', phone: '188-12109109' },
         ],
       },
     ],
@@ -10734,11 +10755,11 @@ init();
           planned: [[[.02, .54], [.14, .52], [.24, .58]], [[.88, .32], [.94, .46], [.96, .62]]],
         },
         customers: [
-          { id: 261, name: '江宁电子', type: '工业', x: .26, y: .34, status: 'follow', last: '7-27', load: 1700 },
-          { id: 262, name: '南京重工集团', type: '工业', x: .56, y: .48, status: 'building', last: '7-30', load: 3100 },
-          { id: 263, name: '百家湖商务区', type: '商业', x: .74, y: .34, status: 'developed', last: '7-22', load: 980 },
-          { id: 264, name: '秣陵工业园食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 265, name: '汤山温泉酒店', type: '商业', x: .84, y: .64, status: 'tovisit', last: '—', load: 0 },
+          { id: 261, name: '江宁电子', type: '工业', x: .26, y: .34, status: 'follow', owner: '李华', last: '7-27', load: 1700, contact: '王启铭', contactTitle: '生产副总', phone: '152-12133592' },
+          { id: 262, name: '南京重工集团', type: '工业', x: .56, y: .48, status: 'building', owner: '陈刚', last: '7-30', load: 3100, contact: '黄立鹏', contactTitle: '动力车间主任', phone: '156-12141753' },
+          { id: 263, name: '百家湖商务区', type: '商业', x: .74, y: .34, status: 'developed', owner: '赵调度', last: '7-22', load: 980, contact: '胡泽宇', contactTitle: '总经理', phone: '186-12149914' },
+          { id: 264, name: '秣陵工业园食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '梁婉婷', contactTitle: '总务科长', phone: '178-12158075' },
+          { id: 265, name: '汤山温泉酒店', type: '商业', x: .84, y: .64, status: 'tovisit', last: '—', load: 0, contact: '邓秀敏', contactTitle: '后勤主管', phone: '135-12166236' },
         ],
       },
       {
@@ -10749,10 +10770,10 @@ init();
           planned: [[[.02, .48], [.14, .46], [.24, .52]], [[.88, .44], [.94, .56], [.96, .70]]],
         },
         customers: [
-          { id: 266, name: '六合化工', type: '工业', x: .26, y: .32, status: 'developed', last: '7-21', load: 2600 },
-          { id: 267, name: '大厂钢铁配套', type: '工业', x: .54, y: .48, status: 'follow', last: '7-27', load: 2900 },
-          { id: 268, name: '雄州商业街', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 269, name: '龙袍建材厂', type: '工业', x: .40, y: .74, status: 'stalled', last: '5-20', load: 0 },
+          { id: 266, name: '六合化工', type: '工业', x: .26, y: .32, status: 'developed', owner: '张三', last: '7-21', load: 2600, contact: '杨思远', contactTitle: '设备科长', phone: '150-12174397' },
+          { id: 267, name: '大厂钢铁配套', type: '工业', x: .54, y: .48, status: 'follow', owner: '王明', last: '7-27', load: 2900, contact: '马书豪', contactTitle: '厂长', phone: '153-12182558' },
+          { id: 268, name: '雄州商业街', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0, contact: '高晓静', contactTitle: '运营总监', phone: '158-12190719' },
+          { id: 269, name: '龙袍建材厂', type: '工业', x: .40, y: .74, status: 'stalled', last: '5-20', load: 0, contact: '韩天佑', contactTitle: '生产副总', phone: '176-12198880' },
         ],
       },
     ],
@@ -10766,11 +10787,11 @@ init();
           planned: [[[.02, .56], [.14, .54], [.24, .60]], [[.88, .34], [.94, .48], [.96, .64]]],
         },
         customers: [
-          { id: 271, name: '昆山电子', type: '工业', x: .26, y: .34, status: 'developed', last: '7-22', load: 2200 },
-          { id: 272, name: '苏州精密电子', type: '工业', x: .56, y: .48, status: 'follow', last: '7-27', load: 2700 },
-          { id: 273, name: '花桥商务城', type: '商业', x: .74, y: .34, status: 'building', last: '7-31', load: 1500 },
-          { id: 274, name: '周庄旅游酒店', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 275, name: '张浦精密模具', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-18', load: 0 },
+          { id: 271, name: '昆山电子', type: '工业', x: .26, y: .34, status: 'developed', owner: '李工', last: '7-22', load: 2200, contact: '徐宏磊', contactTitle: '车间主任', phone: '138-12215202' },
+          { id: 272, name: '苏州精密电子', type: '工业', x: .56, y: .48, status: 'follow', owner: '刘经理', last: '7-27', load: 2700, contact: '林嘉伟', contactTitle: '总经理', phone: '136-12223363' },
+          { id: 273, name: '花桥商务城', type: '商业', x: .74, y: .34, status: 'building', owner: '张三', last: '7-31', load: 1500, contact: '唐浩然', contactTitle: '店长', phone: '151-12231524' },
+          { id: 274, name: '周庄旅游酒店', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '李志峰', contactTitle: '物业经理', phone: '155-12239685' },
+          { id: 275, name: '张浦精密模具', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-18', load: 0, contact: '周亚楠', contactTitle: '厂长', phone: '159-12247846' },
         ],
       },
       {
@@ -10781,10 +10802,10 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .46], [.94, .58], [.96, .72]]],
         },
         customers: [
-          { id: 276, name: '张家港钢铁', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 3400 },
-          { id: 277, name: '沙钢配套加工', type: '工业', x: .54, y: .48, status: 'follow', last: '7-28', load: 2500 },
-          { id: 278, name: '保税区物流园', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 279, name: '杨舍商业中心', type: '商业', x: .40, y: .74, status: 'developed', last: '7-23', load: 820 },
+          { id: 276, name: '张家港钢铁', type: '工业', x: .26, y: .32, status: 'building', owner: '陈刚', last: '7-30', load: 3400, contact: '郭俊杰', contactTitle: '采购经理', phone: '177-12256007' },
+          { id: 277, name: '沙钢配套加工', type: '工业', x: .54, y: .48, status: 'follow', owner: '赵调度', last: '7-28', load: 2500, contact: '谢勇刚', contactTitle: '生产副总', phone: '188-12264168' },
+          { id: 278, name: '保税区物流园', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0, contact: '曹春生', contactTitle: '动力车间主任', phone: '139-12272329' },
+          { id: 279, name: '杨舍商业中心', type: '商业', x: .40, y: .74, status: 'developed', owner: '刘经理', last: '7-23', load: 820, contact: '赵雅婷', contactTitle: '后勤主管', phone: '137-12280490' },
         ],
       },
     ],
@@ -10798,10 +10819,10 @@ init();
           planned: [[[.02, .54], [.14, .52], [.24, .58]], [[.88, .36], [.94, .50], [.96, .66]]],
         },
         customers: [
-          { id: 281, name: '江阴纺织', type: '工业', x: .26, y: .32, status: 'follow', last: '7-27', load: 1600 },
-          { id: 282, name: '华西钢铁配套', type: '工业', x: .56, y: .48, status: 'building', last: '7-31', load: 3000 },
-          { id: 283, name: '澄江商业广场', type: '商业', x: .74, y: .34, status: 'developed', last: '7-22', load: 760 },
-          { id: 284, name: '周庄化纤厂', type: '工业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 281, name: '江阴纺织', type: '工业', x: .26, y: .32, status: 'follow', owner: '王明', last: '7-27', load: 1600, contact: '郑振华', contactTitle: '安环主管', phone: '156-12296812' },
+          { id: 282, name: '华西钢铁配套', type: '工业', x: .56, y: .48, status: 'building', owner: '李华', last: '7-31', load: 3000, contact: '冯博文', contactTitle: '设备科长', phone: '186-12304973' },
+          { id: 283, name: '澄江商业广场', type: '商业', x: .74, y: .34, status: 'developed', owner: '陈刚', last: '7-22', load: 760, contact: '陈伟东', contactTitle: '行政经理', phone: '178-12313134' },
+          { id: 284, name: '周庄化纤厂', type: '工业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '孙国庆', contactTitle: '采购经理', phone: '135-12321295' },
         ],
       },
       {
@@ -10812,10 +10833,10 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .48], [.94, .60], [.96, .74]]],
         },
         customers: [
-          { id: 285, name: '宜兴环保设备', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 1400 },
-          { id: 286, name: '丁蜀陶瓷产业园', type: '工业', x: .54, y: .48, status: 'follow', last: '7-27', load: 1100 },
-          { id: 287, name: '官林电缆厂', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 288, name: '宜城商业中心', type: '商业', x: .40, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 285, name: '宜兴环保设备', type: '工业', x: .26, y: .32, status: 'building', owner: '李工', last: '7-30', load: 1400, contact: '罗梓涵', contactTitle: '生产副总', phone: '150-12329456' },
+          { id: 286, name: '丁蜀陶瓷产业园', type: '工业', x: .54, y: .48, status: 'follow', owner: '刘经理', last: '7-27', load: 1100, contact: '许明辉', contactTitle: '动力车间主任', phone: '153-12337617' },
+          { id: 287, name: '官林电缆厂', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0, contact: '张立新', contactTitle: '车间主任', phone: '158-12345778' },
+          { id: 288, name: '宜城商业中心', type: '商业', x: .40, y: .74, status: 'tovisit', last: '—', load: 0, contact: '吴晨曦', contactTitle: '物业经理', phone: '176-12353939' },
         ],
       },
     ],
@@ -10829,11 +10850,11 @@ init();
           planned: [[[.02, .56], [.14, .54], [.24, .60]], [[.88, .34], [.94, .48], [.96, .64]]],
         },
         customers: [
-          { id: 291, name: '龙泉驿汽车', type: '工业', x: .26, y: .34, status: 'developed', last: '7-22', load: 3200 },
-          { id: 292, name: '成都新川食品', type: '工业', x: .56, y: .48, status: 'follow', last: '7-27', load: 1800 },
-          { id: 293, name: '经开区电子园', type: '工业', x: .74, y: .34, status: 'building', last: '7-31', load: 2400 },
-          { id: 294, name: '洛带古镇商业街', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 295, name: '大面铺五金厂', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-19', load: 0 },
+          { id: 291, name: '龙泉驿汽车', type: '工业', x: .26, y: .34, status: 'developed', owner: '赵调度', last: '7-22', load: 3200, contact: '王子轩', contactTitle: '厂长', phone: '136-12378422' },
+          { id: 292, name: '成都新川食品', type: '工业', x: .56, y: .48, status: 'follow', owner: '李工', last: '7-27', load: 1800, contact: '黄志强', contactTitle: '采购经理', phone: '151-12386583' },
+          { id: 293, name: '经开区电子园', type: '工业', x: .74, y: .34, status: 'building', owner: '刘经理', last: '7-31', load: 2400, contact: '胡宇宁', contactTitle: '生产副总', phone: '155-12394744' },
+          { id: 294, name: '洛带古镇商业街', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '梁家豪', contactTitle: '店长', phone: '159-12402905' },
+          { id: 295, name: '大面铺五金厂', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-19', load: 0, contact: '邓建国', contactTitle: '车间主任', phone: '177-12411066' },
         ],
       },
       {
@@ -10844,10 +10865,10 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .46], [.94, .58], [.96, .72]]],
         },
         customers: [
-          { id: 296, name: '双流电子', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 1900 },
-          { id: 297, name: '成都天府国际机场配套', type: '商业', x: .54, y: .48, status: 'follow', last: '7-28', load: 2200 },
-          { id: 298, name: '蛟龙港工业区', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 299, name: '东升商业中心', type: '商业', x: .40, y: .74, status: 'developed', last: '7-23', load: 940 },
+          { id: 296, name: '双流电子', type: '工业', x: .26, y: .32, status: 'building', owner: '李华', last: '7-30', load: 1900, contact: '杨浩宇', contactTitle: '总经理', phone: '188-12419227' },
+          { id: 297, name: '成都天府国际机场配套', type: '商业', x: .54, y: .48, status: 'follow', owner: '陈刚', last: '7-28', load: 2200, contact: '马梦琪', contactTitle: '行政经理', phone: '139-12427388' },
+          { id: 298, name: '蛟龙港工业区', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0, contact: '高一鸣', contactTitle: '设备科长', phone: '137-12435549' },
+          { id: 299, name: '东升商业中心', type: '商业', x: .40, y: .74, status: 'developed', owner: '李工', last: '7-23', load: 940, contact: '韩文斌', contactTitle: '采购经理', phone: '152-12443710' },
         ],
       },
     ],
@@ -10861,10 +10882,10 @@ init();
           planned: [[[.02, .54], [.14, .52], [.24, .58]], [[.88, .36], [.94, .50], [.96, .66]]],
         },
         customers: [
-          { id: 311, name: '涪城机械', type: '工业', x: .26, y: .32, status: 'follow', last: '7-27', load: 1200 },
-          { id: 312, name: '绵阳长虹电子', type: '工业', x: .56, y: .48, status: 'developed', last: '7-21', load: 2600 },
-          { id: 313, name: '科技城商业广场', type: '商业', x: .74, y: .34, status: 'tovisit', last: '—', load: 0 },
-          { id: 314, name: '游仙职教食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 311, name: '涪城机械', type: '工业', x: .26, y: .32, status: 'follow', owner: '陈刚', last: '7-27', load: 1200, contact: '郑宏磊', contactTitle: '车间主任', phone: '151-12541642' },
+          { id: 312, name: '绵阳长虹电子', type: '工业', x: .56, y: .48, status: 'developed', owner: '赵调度', last: '7-21', load: 2600, contact: '冯嘉伟', contactTitle: '总经理', phone: '155-12549803' },
+          { id: 313, name: '科技城商业广场', type: '商业', x: .74, y: .34, status: 'tovisit', last: '—', load: 0, contact: '陈浩然', contactTitle: '采购经理', phone: '159-12557964' },
+          { id: 314, name: '游仙职教食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '孙志峰', contactTitle: '总务科长', phone: '177-12566125' },
         ],
       },
       {
@@ -10875,10 +10896,10 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .48], [.94, .60], [.96, .74]]],
         },
         customers: [
-          { id: 315, name: '江油冶金', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 2800 },
-          { id: 316, name: '江油特钢配套', type: '工业', x: .54, y: .48, status: 'follow', last: '7-27', load: 2100 },
-          { id: 317, name: '李白故里商业街', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 318, name: '三合镇食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 315, name: '江油冶金', type: '工业', x: .26, y: .32, status: 'building', owner: '张三', last: '7-30', load: 2800, contact: '罗亚楠', contactTitle: '厂长', phone: '188-12574286' },
+          { id: 316, name: '江油特钢配套', type: '工业', x: .54, y: .48, status: 'follow', owner: '王明', last: '7-27', load: 2100, contact: '许俊杰', contactTitle: '采购经理', phone: '139-12582447' },
+          { id: 317, name: '李白故里商业街', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0, contact: '张勇刚', contactTitle: '运营总监', phone: '137-12590608' },
+          { id: 318, name: '三合镇食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0, contact: '吴春生', contactTitle: '总务科长', phone: '152-12598769' },
         ],
       },
     ],
@@ -10892,10 +10913,10 @@ init();
           planned: [[[.02, .54], [.14, .52], [.24, .58]], [[.88, .38], [.94, .52], [.96, .68]]],
         },
         customers: [
-          { id: 321, name: '旌阳化工', type: '工业', x: .26, y: .32, status: 'follow', last: '7-27', load: 1900 },
-          { id: 322, name: '德阳东电机械', type: '工业', x: .56, y: .48, status: 'building', last: '7-30', load: 2500 },
-          { id: 323, name: '旌湖商业中心', type: '商业', x: .74, y: .34, status: 'tovisit', last: '—', load: 0 },
-          { id: 324, name: '孝泉镇食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 321, name: '旌阳化工', type: '工业', x: .26, y: .32, status: 'follow', owner: '刘经理', last: '7-27', load: 1900, contact: '王振华', contactTitle: '安环主管', phone: '178-12623252' },
+          { id: 322, name: '德阳东电机械', type: '工业', x: .56, y: .48, status: 'building', owner: '张三', last: '7-30', load: 2500, contact: '黄博文', contactTitle: '设备科长', phone: '135-12631413' },
+          { id: 323, name: '旌湖商业中心', type: '商业', x: .74, y: .34, status: 'tovisit', last: '—', load: 0, contact: '胡伟东', contactTitle: '物业经理', phone: '150-12639574' },
+          { id: 324, name: '孝泉镇食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '梁国庆', contactTitle: '总务科长', phone: '153-12647735' },
         ],
       },
       {
@@ -10906,10 +10927,10 @@ init();
           planned: [[[.02, .48], [.14, .46], [.24, .52]], [[.88, .44], [.94, .56], [.96, .70]]],
         },
         customers: [
-          { id: 325, name: '广汉食品', type: '工业', x: .26, y: .32, status: 'developed', last: '7-23', load: 1300 },
-          { id: 326, name: '三星堆文旅酒店', type: '商业', x: .54, y: .48, status: 'follow', last: '7-27', load: 880 },
-          { id: 327, name: '广汉航空配件', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 328, name: '向阳镇建材厂', type: '工业', x: .40, y: .74, status: 'stalled', last: '5-20', load: 0 },
+          { id: 325, name: '广汉食品', type: '工业', x: .26, y: .32, status: 'developed', owner: '陈刚', last: '7-23', load: 1300, contact: '邓梓涵', contactTitle: '生产副总', phone: '158-12655896' },
+          { id: 326, name: '三星堆文旅酒店', type: '商业', x: .54, y: .48, status: 'follow', owner: '赵调度', last: '7-27', load: 880, contact: '杨明辉', contactTitle: '总经理', phone: '176-12664057' },
+          { id: 327, name: '广汉航空配件', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0, contact: '马立新', contactTitle: '车间主任', phone: '187-12672218' },
+          { id: 328, name: '向阳镇建材厂', type: '工业', x: .40, y: .74, status: 'stalled', last: '5-20', load: 0, contact: '高晨曦', contactTitle: '总经理', phone: '138-12680379' },
         ],
       },
     ],
@@ -10923,11 +10944,11 @@ init();
           planned: [[[.02, .56], [.14, .54], [.24, .60]], [[.88, .34], [.94, .48], [.96, .64]]],
         },
         customers: [
-          { id: 331, name: '章丘锻压', type: '工业', x: .26, y: .34, status: 'follow', last: '7-27', load: 1800 },
-          { id: 332, name: '济南重汽配件', type: '工业', x: .56, y: .48, status: 'developed', last: '7-22', load: 2700 },
-          { id: 333, name: '明水商业中心', type: '商业', x: .74, y: .34, status: 'building', last: '7-31', load: 1200 },
-          { id: 334, name: '绣惠食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 335, name: '刁镇五金厂', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-18', load: 0 },
+          { id: 331, name: '章丘锻压', type: '工业', x: .26, y: .34, status: 'follow', owner: '李华', last: '7-27', load: 1800, contact: '徐子轩', contactTitle: '厂长', phone: '155-12704862' },
+          { id: 332, name: '济南重汽配件', type: '工业', x: .56, y: .48, status: 'developed', owner: '陈刚', last: '7-22', load: 2700, contact: '林志强', contactTitle: '采购经理', phone: '159-12713023' },
+          { id: 333, name: '明水商业中心', type: '商业', x: .74, y: .34, status: 'building', owner: '赵调度', last: '7-31', load: 1200, contact: '唐宇宁', contactTitle: '总经理', phone: '177-12721184' },
+          { id: 334, name: '绣惠食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '李家豪', contactTitle: '总务科长', phone: '188-12729345' },
+          { id: 335, name: '刁镇五金厂', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-18', load: 0, contact: '周建国', contactTitle: '车间主任', phone: '139-12737506' },
         ],
       },
       {
@@ -10938,10 +10959,10 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .46], [.94, .58], [.96, .72]]],
         },
         customers: [
-          { id: 336, name: '长清电子', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 1600 },
-          { id: 337, name: '大学城商业街', type: '商业', x: .54, y: .48, status: 'follow', last: '7-27', load: 920 },
-          { id: 338, name: '崮山机械加工', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 339, name: '万德镇食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 336, name: '长清电子', type: '工业', x: .26, y: .32, status: 'building', owner: '张三', last: '7-30', load: 1600, contact: '郭浩宇', contactTitle: '总经理', phone: '137-12745667' },
+          { id: 337, name: '大学城商业街', type: '商业', x: .54, y: .48, status: 'follow', owner: '王明', last: '7-27', load: 920, contact: '谢梦琪', contactTitle: '物业经理', phone: '152-12753828' },
+          { id: 338, name: '崮山机械加工', type: '工业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0, contact: '曹一鸣', contactTitle: '设备科长', phone: '156-12761989' },
+          { id: 339, name: '万德镇食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0, contact: '赵文斌', contactTitle: '总务科长', phone: '186-12770150' },
         ],
       },
     ],
@@ -10955,11 +10976,11 @@ init();
           planned: [[[.02, .54], [.14, .52], [.24, .58]], [[.88, .36], [.94, .50], [.96, .66]]],
         },
         customers: [
-          { id: 341, name: '黄岛化工', type: '工业', x: .26, y: .32, status: 'developed', last: '7-22', load: 3100 },
-          { id: 342, name: '青岛海尔家电', type: '工业', x: .56, y: .48, status: 'follow', last: '7-27', load: 2600 },
-          { id: 343, name: '前湾港物流园', type: '工业', x: .74, y: .34, status: 'building', last: '7-31', load: 2300 },
-          { id: 344, name: '唐岛湾商业中心', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 345, name: '辛安街道食堂', type: '公福', x: .84, y: .64, status: 'tovisit', last: '—', load: 0 },
+          { id: 341, name: '黄岛化工', type: '工业', x: .26, y: .32, status: 'developed', owner: '李工', last: '7-22', load: 3100, contact: '郑启铭', contactTitle: '生产副总', phone: '135-12786472' },
+          { id: 342, name: '青岛海尔家电', type: '工业', x: .56, y: .48, status: 'follow', owner: '刘经理', last: '7-27', load: 2600, contact: '冯立鹏', contactTitle: '动力车间主任', phone: '150-12794633' },
+          { id: 343, name: '前湾港物流园', type: '工业', x: .74, y: .34, status: 'building', owner: '张三', last: '7-31', load: 2300, contact: '陈泽宇', contactTitle: '车间主任', phone: '153-12802794' },
+          { id: 344, name: '唐岛湾商业中心', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '孙婉婷', contactTitle: '物业经理', phone: '158-12810955' },
+          { id: 345, name: '辛安街道食堂', type: '公福', x: .84, y: .64, status: 'tovisit', last: '—', load: 0, contact: '罗秀敏', contactTitle: '总务科长', phone: '176-12819116' },
         ],
       },
       {
@@ -10970,10 +10991,10 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .48], [.94, .60], [.96, .74]]],
         },
         customers: [
-          { id: 346, name: '城阳食品', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 1500 },
-          { id: 347, name: '青岛轨道交通配套', type: '工业', x: .54, y: .48, status: 'follow', last: '7-27', load: 2400 },
-          { id: 348, name: '流亭商贸城', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 349, name: '惜福镇食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 346, name: '城阳食品', type: '工业', x: .26, y: .32, status: 'building', owner: '陈刚', last: '7-30', load: 1500, contact: '许思远', contactTitle: '设备科长', phone: '187-12827277' },
+          { id: 347, name: '青岛轨道交通配套', type: '工业', x: .54, y: .48, status: 'follow', owner: '赵调度', last: '7-27', load: 2400, contact: '张书豪', contactTitle: '厂长', phone: '138-12835438' },
+          { id: 348, name: '流亭商贸城', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0, contact: '吴晓静', contactTitle: '采购经理', phone: '136-12843599' },
+          { id: 349, name: '惜福镇食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0, contact: '何天佑', contactTitle: '总务科长', phone: '151-12851760' },
         ],
       },
     ],
@@ -10987,10 +11008,10 @@ init();
           planned: [[[.02, .54], [.14, .52], [.24, .58]], [[.88, .38], [.94, .52], [.96, .68]]],
         },
         customers: [
-          { id: 351, name: '龙口铝业', type: '工业', x: .26, y: .32, status: 'follow', last: '7-27', load: 2900 },
-          { id: 352, name: '南山纺织配套', type: '工业', x: .56, y: .48, status: 'building', last: '7-31', load: 2100 },
-          { id: 353, name: '东海商业广场', type: '商业', x: .74, y: .34, status: 'tovisit', last: '—', load: 0 },
-          { id: 354, name: '诸由观食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 351, name: '龙口铝业', type: '工业', x: .26, y: .32, status: 'follow', owner: '王明', last: '7-27', load: 2900, contact: '王宏磊', contactTitle: '车间主任', phone: '159-12868082' },
+          { id: 352, name: '南山纺织配套', type: '工业', x: .56, y: .48, status: 'building', owner: '李华', last: '7-31', load: 2100, contact: '黄嘉伟', contactTitle: '总经理', phone: '177-12876243' },
+          { id: 353, name: '东海商业广场', type: '商业', x: .74, y: .34, status: 'tovisit', last: '—', load: 0, contact: '胡浩然', contactTitle: '行政经理', phone: '188-12884404' },
+          { id: 354, name: '诸由观食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '梁志峰', contactTitle: '总务科长', phone: '139-12892565' },
         ],
       },
       {
@@ -11001,10 +11022,10 @@ init();
           planned: [[[.02, .48], [.14, .46], [.24, .52]], [[.88, .44], [.94, .56], [.96, .70]]],
         },
         customers: [
-          { id: 355, name: '莱阳食品', type: '工业', x: .26, y: .32, status: 'developed', last: '7-23', load: 1400 },
-          { id: 356, name: '鲁花花生油配套', type: '工业', x: .54, y: .48, status: 'follow', last: '7-27', load: 1800 },
-          { id: 357, name: '照旺庄梨园酒店', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 358, name: '冯格庄食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 355, name: '莱阳食品', type: '工业', x: .26, y: .32, status: 'developed', owner: '李工', last: '7-23', load: 1400, contact: '邓亚楠', contactTitle: '厂长', phone: '137-12900726' },
+          { id: 356, name: '鲁花花生油配套', type: '工业', x: .54, y: .48, status: 'follow', owner: '刘经理', last: '7-27', load: 1800, contact: '杨俊杰', contactTitle: '采购经理', phone: '152-12908887' },
+          { id: 357, name: '照旺庄梨园酒店', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0, contact: '马勇刚', contactTitle: '店长', phone: '156-12917048' },
+          { id: 358, name: '冯格庄食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0, contact: '高春生', contactTitle: '总务科长', phone: '186-12925209' },
         ],
       },
     ],
@@ -11018,11 +11039,11 @@ init();
           planned: [[[.02, .56], [.14, .54], [.24, .60]], [[.88, .34], [.94, .48], [.96, .64]]],
         },
         customers: [
-          { id: 361, name: '光谷电子', type: '工业', x: .26, y: .34, status: 'developed', last: '7-22', load: 2400 },
-          { id: 362, name: '武汉东汽零部件', type: '工业', x: .56, y: .48, status: 'follow', last: '7-27', load: 2900 },
-          { id: 363, name: '光谷生物城', type: '工业', x: .74, y: .34, status: 'building', last: '7-31', load: 2200 },
-          { id: 364, name: '鲁巷商业广场', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
-          { id: 365, name: '左岭精密制造', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-18', load: 0 },
+          { id: 361, name: '光谷电子', type: '工业', x: .26, y: .34, status: 'developed', owner: '赵调度', last: '7-22', load: 2400, contact: '徐振华', contactTitle: '安环主管', phone: '150-12949692' },
+          { id: 362, name: '武汉东汽零部件', type: '工业', x: .56, y: .48, status: 'follow', owner: '李工', last: '7-27', load: 2900, contact: '林博文', contactTitle: '设备科长', phone: '153-12957853' },
+          { id: 363, name: '光谷生物城', type: '工业', x: .74, y: .34, status: 'building', owner: '刘经理', last: '7-31', load: 2200, contact: '唐伟东', contactTitle: '厂长', phone: '158-12966014' },
+          { id: 364, name: '鲁巷商业广场', type: '商业', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '李国庆', contactTitle: '店长', phone: '176-12974175' },
+          { id: 365, name: '左岭精密制造', type: '工业', x: .84, y: .64, status: 'stalled', last: '5-18', load: 0, contact: '周梓涵', contactTitle: '生产副总', phone: '187-12982336' },
         ],
       },
       {
@@ -11033,10 +11054,10 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .46], [.94, .58], [.96, .72]]],
         },
         customers: [
-          { id: 366, name: '沌口食品', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 1600 },
-          { id: 367, name: '东风汽车配套', type: '工业', x: .54, y: .48, status: 'follow', last: '7-27', load: 3300 },
-          { id: 368, name: '经开万达商圈', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 369, name: '军山街道食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 366, name: '沌口食品', type: '工业', x: .26, y: .32, status: 'building', owner: '李华', last: '7-30', load: 1600, contact: '郭明辉', contactTitle: '动力车间主任', phone: '138-12990497' },
+          { id: 367, name: '东风汽车配套', type: '工业', x: .54, y: .48, status: 'follow', owner: '陈刚', last: '7-27', load: 3300, contact: '谢立新', contactTitle: '车间主任', phone: '136-12998658' },
+          { id: 368, name: '经开万达商圈', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0, contact: '曹晨曦', contactTitle: '总经理', phone: '151-13006819' },
+          { id: 369, name: '军山街道食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0, contact: '赵海涛', contactTitle: '总务科长', phone: '155-13014980' },
         ],
       },
     ],
@@ -11050,10 +11071,10 @@ init();
           planned: [[[.02, .54], [.14, .52], [.24, .58]], [[.88, .36], [.94, .50], [.96, .66]]],
         },
         customers: [
-          { id: 371, name: '猇亭化工', type: '工业', x: .26, y: .32, status: 'follow', last: '7-27', load: 3200 },
-          { id: 372, name: '宜昌三峡酒业', type: '工业', x: .56, y: .48, status: 'developed', last: '7-22', load: 1700 },
-          { id: 373, name: '三峡物流园', type: '工业', x: .74, y: .34, status: 'tovisit', last: '—', load: 0 },
-          { id: 374, name: '古老背食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 371, name: '猇亭化工', type: '工业', x: .26, y: .32, status: 'follow', owner: '张三', last: '7-27', load: 3200, contact: '郑子轩', contactTitle: '厂长', phone: '177-13031302' },
+          { id: 372, name: '宜昌三峡酒业', type: '工业', x: .56, y: .48, status: 'developed', owner: '王明', last: '7-22', load: 1700, contact: '冯志强', contactTitle: '采购经理', phone: '188-13039463' },
+          { id: 373, name: '三峡物流园', type: '工业', x: .74, y: .34, status: 'tovisit', last: '—', load: 0, contact: '陈宇宁', contactTitle: '生产副总', phone: '139-13047624' },
+          { id: 374, name: '古老背食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '孙家豪', contactTitle: '总务科长', phone: '137-13055785' },
         ],
       },
       {
@@ -11064,10 +11085,10 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .48], [.94, .60], [.96, .74]]],
         },
         customers: [
-          { id: 375, name: '枝江纺织', type: '工业', x: .26, y: .32, status: 'building', last: '7-30', load: 1400 },
-          { id: 376, name: '枝江酒业配套', type: '工业', x: .54, y: .48, status: 'follow', last: '7-27', load: 1600 },
-          { id: 377, name: '马家店商业街', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 378, name: '董市镇食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 375, name: '枝江纺织', type: '工业', x: .26, y: .32, status: 'building', owner: '赵调度', last: '7-30', load: 1400, contact: '罗建国', contactTitle: '车间主任', phone: '152-13063946' },
+          { id: 376, name: '枝江酒业配套', type: '工业', x: .54, y: .48, status: 'follow', owner: '李工', last: '7-27', load: 1600, contact: '许浩宇', contactTitle: '总经理', phone: '156-13072107' },
+          { id: 377, name: '马家店商业街', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0, contact: '张梦琪', contactTitle: '后勤主管', phone: '186-13080268' },
+          { id: 378, name: '董市镇食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0, contact: '吴一鸣', contactTitle: '总务科长', phone: '178-13088429' },
         ],
       },
     ],
@@ -11081,10 +11102,10 @@ init();
           planned: [[[.02, .56], [.14, .54], [.24, .60]], [[.88, .34], [.94, .48], [.96, .64]]],
         },
         customers: [
-          { id: 381, name: '樊城机械', type: '工业', x: .26, y: .34, status: 'follow', last: '7-27', load: 1500 },
-          { id: 382, name: '襄阳骆驼电池', type: '工业', x: .56, y: .48, status: 'building', last: '7-30', load: 2600 },
-          { id: 383, name: '樊西商业广场', type: '商业', x: .74, y: .34, status: 'tovisit', last: '—', load: 0 },
-          { id: 384, name: '牛首镇食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 381, name: '樊城机械', type: '工业', x: .26, y: .34, status: 'follow', owner: '陈刚', last: '7-27', load: 1500, contact: '王启铭', contactTitle: '生产副总', phone: '153-13112912' },
+          { id: 382, name: '襄阳骆驼电池', type: '工业', x: .56, y: .48, status: 'building', owner: '赵调度', last: '7-30', load: 2600, contact: '黄立鹏', contactTitle: '动力车间主任', phone: '158-13121073' },
+          { id: 383, name: '樊西商业广场', type: '商业', x: .74, y: .34, status: 'tovisit', last: '—', load: 0, contact: '胡泽宇', contactTitle: '采购经理', phone: '176-13129234' },
+          { id: 384, name: '牛首镇食堂', type: '公福', x: .38, y: .74, status: 'tovisit', last: '—', load: 0, contact: '梁婉婷', contactTitle: '总务科长', phone: '187-13137395' },
         ],
       },
       {
@@ -11095,10 +11116,10 @@ init();
           planned: [[[.02, .50], [.14, .48], [.24, .54]], [[.88, .46], [.94, .58], [.96, .72]]],
         },
         customers: [
-          { id: 385, name: '枣阳食品', type: '工业', x: .26, y: .32, status: 'developed', last: '7-23', load: 1200 },
-          { id: 386, name: '枣阳汽车零部件', type: '工业', x: .54, y: .48, status: 'follow', last: '7-27', load: 1900 },
-          { id: 387, name: '吴店商业街', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0 },
-          { id: 388, name: '南城街道食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0 },
+          { id: 385, name: '枣阳食品', type: '工业', x: .26, y: .32, status: 'developed', owner: '张三', last: '7-23', load: 1200, contact: '邓秀敏', contactTitle: '安环主管', phone: '138-13145556' },
+          { id: 386, name: '枣阳汽车零部件', type: '工业', x: .54, y: .48, status: 'follow', owner: '王明', last: '7-27', load: 1900, contact: '杨思远', contactTitle: '设备科长', phone: '136-13153717' },
+          { id: 387, name: '吴店商业街', type: '商业', x: .72, y: .36, status: 'tovisit', last: '—', load: 0, contact: '马书豪', contactTitle: '运营总监', phone: '151-13161878' },
+          { id: 388, name: '南城街道食堂', type: '公福', x: .40, y: .74, status: 'tovisit', last: '—', load: 0, contact: '高晓静', contactTitle: '总务科长', phone: '155-13170039' },
         ],
       },
     ],
@@ -11239,10 +11260,11 @@ init();
   function drawCustomers() {
     pinRects.length = 0;
     pcCustomers().forEach(c => {
-      if (!activeFilters.has(c.status)) return;
+      if (!statusList(c).some(k => activeFilters.has(k))) return;
       const sel = selected && selected.id === c.id;
       const dim = selected && !sel;
-      drawPin(c.x * W, c.y * H, STATUS[c.status].color, STATUS[c.status].ink, c.name, sel, dim);
+      const pk = primaryStatus(c);
+      drawPin(c.x * W, c.y * H, STATUS[pk].color, STATUS[pk].ink, c.name, sel, dim);
     });
   }
 
@@ -11324,7 +11346,7 @@ init();
 
   function pcSummary(pc) {
     const s = { total: 0, developed: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 };
-    (pc ? pc.customers : pcCustomers()).forEach(c => { s.total++; s[c.status] = (s[c.status] || 0) + 1; s.load += (c.load || 0); });
+    (pc ? pc.customers : pcCustomers()).forEach(c => { s.total++; statusList(c).forEach(k => s[k] = (s[k] || 0) + 1); s.load += (c.load || 0); });
     return s;
   }
   /* 市级视图汇总 = 该市所有项目公司汇总 */
@@ -11721,7 +11743,7 @@ init();
     for (let i = 0; i < pinRects.length; i++) { if (Math.hypot(pinRects[i].cx - p.wx, pinRects[i].cy - 6 - p.wy) < 11) return i; }
     return -1;
   }
-  const visibleCustomers = () => pcCustomers().filter(c => activeFilters.has(c.status));
+  const visibleCustomers = () => pcCustomers().filter(c => statusList(c).some(k => activeFilters.has(k)));
   cv.addEventListener('click', e => {
     const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
     if (viewLevel < 2) { const reg = hitRegion(mx, my); if (reg) viewLevel === 0 ? goProvince(reg) : goCity(reg); return; }
@@ -11758,7 +11780,7 @@ init();
         let px, py;
         if (geoReady()) { const hit = geoHits.find(h => h.name === reg.name); px = hit ? hit.labelX : mx; py = hit ? hit.labelY : my; }
         else { px = reg.x * W; py = reg.y * H; }
-        const keyHtml = (viewLevel < 2 && reg.keyCustomers) ? `<div class="p-key">在开发代表客户</div>` + reg.keyCustomers.map(k => `<div class="p-cust"><span class="kdot" style="background:${STATUS[k.status].color}"></span>${k.name}<span class="kst">${STATUS[k.status].name}</span></div>`).join('') : '';
+        const keyHtml = (viewLevel < 2 && reg.keyCustomers) ? `<div class="p-key">在开发代表客户</div>` + reg.keyCustomers.map(k => `<div class="p-cust"><span class="kdot" style="background:${STATUS[primaryStatus(k)].color}"></span>${k.name}<span class="kst">${statusList(k).map(s => STATUS[s].name).join(' + ')}</span></div>`).join('') : '';
         popup.style.display = 'block';
         popup.style.left = px + 'px'; popup.style.top = py + 'px';
         popup.innerHTML = `<div class="p-name">${reg.name}</div><div class="p-row">客户 ${s.total} · 已开发 ${s.developed || 0} · 意向 ${s.follow}${s.load ? ' · ' + s.load.toLocaleString() + ' m³/日' : ''}</div>${keyHtml}<div class="p-row" style="margin-top:4px;color:var(--brand)">点击/滚轮进入 →</div>`;
@@ -11776,11 +11798,13 @@ init();
     if (i >= 0) {
       const c = visibleCustomers()[i];
       const sp = worldToScreen(c.x * W, c.y * H);
-      const np = nearestPipe(c);
-      const pipeDistM = np ? Math.round(np.dist / R500() * 500) : null;
       popup.style.display = 'block';
       popup.style.left = sp.x + 'px'; popup.style.top = (sp.y - 4) + 'px';
-      popup.innerHTML = `<div class="p-name">${c.name}</div><div class="p-row">${STATUS[c.status].name} · ${c.type}${c.load ? ' · 预估用气量 ' + c.load.toLocaleString() + ' m³/日' : ''}</div><div class="p-row">最近走访：${c.last}</div>${np ? `<div class="p-row">最近管线：${np.type} · 直线距离约 ${pipeDistM} m</div>` : ''}`;
+      const stNames = statusList(c).map(k => STATUS[k].name).join(' + ');
+      popup.innerHTML = `<div class="p-name">${c.name}</div><div class="p-row">${stNames} · ${c.type}${c.load ? ' · 预估用气量 ' + c.load.toLocaleString() + ' m³/日' : ''}</div>`
+        + (c.contact ? `<div class="p-contact"><svg class="pc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${c.contact}<span class="pc-tel">｜${c.phone || '—'}</span></div>` : '')
+        + (c.owner ? `<div class="p-owner"><svg class="po-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>负责人 <b>${c.owner}</b></div>` : '')
+        + `<div class="p-row">最近走访：${c.last}</div>`;
     } else popup.style.display = 'none';
   });
   cv.addEventListener('mouseleave', () => popup.style.display = 'none');
@@ -11863,7 +11887,7 @@ init();
   const CUST_ROW_H = 58;   // .cust 固定行高，见 CSS
   const PAGER_H = 38;      // .cust-pager 固定高度，见 CSS
   let custPage = 1;
-  const shownCustomers = () => pcCustomers().filter(c => activeFilters.has(c.status) && (!searchKw || c.name.includes(searchKw)));
+  const shownCustomers = () => pcCustomers().filter(c => statusList(c).some(k => activeFilters.has(k)) && (!searchKw || c.name.includes(searchKw)));
   function custPerPage() {
     const list = $id('custList'), side = list.parentElement;
     const head = side.querySelector('.side-head');
@@ -11900,7 +11924,8 @@ init();
     shown.slice(start, start + per).forEach(c => {
       const el = document.createElement('div');
       el.className = 'cust' + (selected && selected.id === c.id ? ' sel' : '');
-      el.innerHTML = `<div class="name">${c.name}<span class="badge" style="background:${STATUS[c.status].color}">${STATUS[c.status].name}</span></div><div class="meta"><span>${c.type}${c.load ? ' · ' + c.load.toLocaleString() + ' m³/日' : ''}</span><span>走访 ${c.last}</span></div>`;
+      const badges = statusList(c).map(k => `<span class="badge" style="background:${STATUS[k].color}">${STATUS[k].name}</span>`).join('');
+      el.innerHTML = `<div class="name">${c.name}${badges}</div><div class="meta"><span>${c.type}${c.load ? ' · ' + c.load.toLocaleString() + ' m³/日' : ''}</span><span>走访 ${c.last}</span></div>`;
       el.onclick = () => { selected = c; renderList(); draw(); };
       list.appendChild(el);
     });
@@ -11915,7 +11940,7 @@ init();
       const rate = s.total ? Math.round(s.developed / s.total * 100) : 0;
       const el = document.createElement('div');
       el.className = 'cust';
-      el.innerHTML = `<div class="name">${r.name}<span class="badge" style="background:${regionFill(s)};color:${regionText(s)}">已开发率 ${rate}%</span>${s.load ? `<span class="load">${s.load.toLocaleString()} m³/日</span>` : ''}</div><div class="meta"><span>客户 ${s.total} · 已开发 ${s.developed || 0} · 意向 ${s.follow}</span></div>`;
+      el.innerHTML = `<div class="name">${r.name}<span class="badge" style="background:${regionFill(s)};color:${regionText(s)}">年度开发计划完成率 ${rate}%</span></div><div class="meta"><span>客户 ${s.total} · 已开发 ${s.developed || 0} · 意向 ${s.follow}</span></div>`;
       el.onclick = () => { viewLevel === 0 ? goProvince(r) : goCity(r); };
       list.appendChild(el);
     });
@@ -11995,6 +12020,10 @@ init();
   window.cdmGo = {
     country: goCountry, province: goProvince, city: goCity, pc: switchPC,
     provinces: () => regions, cityPCs: (c) => cityPCs(c),
+    /* 调试/自动化：状态访问器与当前客户池（用于联调与无头验证） */
+    statusList, primaryStatus, hasStatus,
+    customers: () => pcCustomers(),
+    summary: () => currentSummary(),
   };
 })();
 </script>
