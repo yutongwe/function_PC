@@ -1817,6 +1817,20 @@ table { border-collapse: collapse; width: 100%; }
 .cdmap .cust .name .plan-ico { width:13px; height:13px; flex:0 0 auto; color:#0E8A4A; }
 .cdmap .cust .name .load { margin-left:auto; font-size:11px; font-weight:400; color:var(--muted); white-space:nowrap; }
 .cdmap .cust .meta { font-size:11px; color:var(--muted); margin-top:3px; display:flex; justify-content:space-between; }
+/* 省级视图：市行的「展开/收起项目公司」箭头（放在市名前面，默认收起，点箭头展开） */
+.cdmap .cust .name .twisty { width:22px; height:22px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; padding:0; border:0; border-radius:6px; background:transparent; color:#8494A1; cursor:pointer; transition:background .15s,color .15s; }
+.cdmap .cust .name .twisty svg { width:13px; height:13px; transition:transform .18s; }
+.cdmap .cust .name .twisty:hover { background:#E4EEFF; color:var(--brand); }
+.cdmap .cust .name .twisty.on { color:var(--brand); }
+.cdmap .cust .name .twisty.on svg { transform:rotate(90deg); }
+/* 有箭头的市行：统计行与市名左对齐（让出箭头 + 间距的宽度） */
+.cdmap .cust.has-kids .meta { padding-left:28px; }
+/* 省级视图：市行下面挂的下级「项目公司」行（展开后才出现） */
+.cdmap .cust.sub { height:46px; padding-left:44px; background:#FAFBFD; }
+.cdmap .cust.sub:hover { background:#F0F6FF; }
+.cdmap .cust.sub .name { font-size:12.5px; font-weight:500; color:#3A4A56; }
+.cdmap .cust.sub .name::before { content:''; width:6px; height:6px; border-radius:2px; background:#9FB8D8; flex:0 0 auto; }
+.cdmap .cust.sub .meta { font-size:10.5px; margin-top:2px; }
 .cdmap .badge { font-size:10px; padding:1px 7px; border-radius:9px; color:#fff; font-weight:600; }
 .cdmap .cust-pager { flex:0 0 38px; height:38px; box-sizing:border-box; display:none; align-items:center; justify-content:space-between; gap:8px; padding:0 12px; border-top:1px solid var(--line); background:var(--panel); }
 .cdmap .cust-pager .pg-info { font-size:11px; color:var(--muted); white-space:nowrap; }
@@ -11142,7 +11156,7 @@ init();
   /* ================= 区域数据（全国 → 省 → 市 三级钻取） ================= */
   const regions = [
     { id: 'gd', name: '广东省', adcode: '440000', keyCustomers: [{ name: '宏远五金制品厂', status: 'follow' }, { name: '顺丰食品加工园', status: 'building' }, { name: '悦湖酒店', status: 'developed' }], x: .68, y: .72, cities: [
-      { id: 'sz', name: '深圳市', keyCustomers: [{ name: '恒信纺织厂', status: 'follow' }, { name: '华骏汽配产业园', status: 'building' }, { name: '望江宾馆', status: 'developed' }], x: .64, y: .80, detailed: true },
+      { id: 'sz', name: '深圳市', keyCustomers: [{ name: '恒信纺织厂', status: 'follow' }, { name: '华骏汽配产业园', status: 'building' }, { name: '望江宾馆', status: 'developed' }], x: .64, y: .80 },
       { id: 'gz', name: '广州市', keyCustomers: [{ name: '广州汽车零部件', status: 'developed' }, { name: '黄埔化工', status: 'follow' }, { name: '番禺食品', status: 'developed' }], x: .40, y: .42, summary: { total: 16, developed: 3, follow: 3, building: 3, tovisit: 5, stalled: 2, nointent: 0, load: 16020 } },
       { id: 'dg', name: '东莞市', keyCustomers: [{ name: '东莞电子科技', status: 'follow' }, { name: '松山湖精密制造', status: 'building' }, { name: '虎门服装', status: 'developed' }], x: .60, y: .50, summary: { total: 16, developed: 2, follow: 3, building: 3, tovisit: 5, stalled: 2, nointent: 1, load: 14740 } },
       { id: 'fs', name: '佛山市', keyCustomers: [{ name: '佛山陶瓷厂', status: 'developed' }, { name: '顺德家电', status: 'follow' }, { name: '南海铝业', status: 'building' }], x: .32, y: .58, summary: { total: 10, developed: 2, follow: 2, building: 2, tovisit: 2, stalled: 1, nointent: 1, load: 10580 } },
@@ -11354,11 +11368,10 @@ init();
     (pc ? pc.customers : pcCustomers()).forEach(c => { s.total++; statusList(c).forEach(k => s[k] = (s[k] || 0) + 1); s.load += (c.load || 0); });
     return s;
   }
-  /* 市级视图汇总 = 该市所有项目公司汇总 */
+  /* 市级视图汇总 = 该市所有项目公司汇总（未配置项目公司的市回落到预置 summary） */
   function citySummary(city) {
-    if (city.detailed) return pcSummary(null);
-    const pcs = cityPCs(city);
-    if (!pcs.length) return city.summary;
+    const pcs = PROJECT_COMPANIES[city.id];
+    if (!pcs || !pcs.length) return city.summary || { total: 0, developed: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 };
     const s = { total: 0, developed: 0, follow: 0, building: 0, tovisit: 0, stalled: 0, nointent: 0, load: 0 };
     pcs.forEach(pc => { const cs = pcSummary(pc); for (const k in s) s[k] += (cs[k] || 0); });
     return s;
@@ -11763,9 +11776,9 @@ init();
     ensureProvinceGeo(p);
     showZoomHint('已进入 ' + p.name + '，滚轮或点击继续下钻');
   }
-  function goCity(c) {
+  function goCity(c, pc) {
     viewLevel = 2; currentCity = c; hoverRegion = null; selected = null;
-    currentPC = cityPCs(c)[0];   // 默认进入该市第一个项目公司
+    currentPC = pc || cityPCs(c)[0];   // 默认进入该市第一个项目公司；从省级侧栏点下级可指定
     cam = { zoom: 1, cx: .5, cy: .5 };  // 进入市级视图重置相机
     syncUI(); renderList(); renderStats(); draw();
     showZoomHint('已进入 ' + c.name + ' ' + (currentPC ? currentPC.name : '客户池') + '地图，左侧可切换项目公司');
@@ -11971,17 +11984,44 @@ init();
     });
     renderPager(shown.length, pages);
   }
+  /* 省级视图：已展开的市（默认全部收起，点市行右侧箭头展开） */
+  const expandedCities = new Set();
   function renderRegionList() {
     const list = $id('custList'); list.innerHTML = '';
     const arr = viewLevel === 0 ? regions : currentProvince.cities;
     $id('poolCount').textContent = `（${arr.length}）`;
     arr.forEach(r => {
       const s = viewLevel === 0 ? provinceSummary(r) : citySummary(r);
+      /* 省级视图下、且该市已配置项目公司 → 市行右侧给一个展开/收起箭头 */
+      const pcs = viewLevel === 1 ? PROJECT_COMPANIES[r.id] : null;
+      const canExpand = !!(pcs && pcs.length);
+      const open = canExpand && expandedCities.has(r.id);
       const el = document.createElement('div');
-      el.className = 'cust';
-      el.innerHTML = `<div class="name">${r.name}</div><div class="meta"><span>客户 ${s.total} · 已开发 ${s.developed || 0} · 意向 ${s.follow}</span></div>`;
+      el.className = 'cust' + (canExpand ? ' has-kids' : '');
+      el.innerHTML = `<div class="name">`
+        + (canExpand
+            ? `<button type="button" class="twisty${open ? ' on' : ''}" aria-expanded="${open}" title="${open ? '收起' : '展开'}项目公司"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>`
+            : '')
+        + `${r.name}</div><div class="meta"><span>客户 ${s.total} · 已开发 ${s.developed || 0} · 意向 ${s.follow}</span></div>`;
       el.onclick = () => { viewLevel === 0 ? goProvince(r) : goCity(r); };
+      const tw = el.querySelector('.twisty');
+      if (tw) tw.onclick = (ev) => {
+        ev.stopPropagation();
+        if (open) expandedCities.delete(r.id); else expandedCities.add(r.id);
+        renderRegionList();
+      };
       list.appendChild(el);
+      /* 已展开：在该市行下面挂该市下辖的项目公司（下级行，点击直接进入该项目公司） */
+      if (open) {
+        pcs.forEach(pc => {
+          const ps = pcSummary(pc);
+          const pe = document.createElement('div');
+          pe.className = 'cust sub';
+          pe.innerHTML = `<div class="name">${pc.name}</div><div class="meta"><span>客户 ${ps.total} · 已开发 ${ps.developed || 0} · 意向 ${ps.follow}</span></div>`;
+          pe.onclick = (ev) => { ev.stopPropagation(); goCity(r, pc); };
+          list.appendChild(pe);
+        });
+      }
     });
   }
 
